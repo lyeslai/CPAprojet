@@ -18,22 +18,41 @@ const initCanvas =
 const Canvas = ({ height, width }: { height: number; width: number }) => {
   const initialState: State = {
     joueur : {
-      life : 3, 
       coord: {
-        x: randomInt(820) + 80,
-        y: randomInt(500) + 100,
+        x: 600,
+        y: 100,
         dx: 0,
         dy: 0
       },
       moveLeft : true,
       moveUp : true,
       moveDown : true, 
-      moveRight : true
+      moveRight : true,
+      frameIndexX : 0, 
+      frameIndexY : 0, 
+      nbFrameLR : 12,
+      nbFrameUD : 4,
+      coeur : 1
+    },
+    slime : {
+      life : 3, 
+      coord : {
+        x : 800,
+        y : 300,
+        dx : 0,
+        dy : 0
+      },
+      frameIndex : 0, 
+      nbFrameLR : 7
     },
     obstacles : conf.OBSTACLES,
-    size: { height, width },
-    endOfGame: true,
+    size: { width , height },
+    endOfGame: true
+    
   }
+
+ 
+
 
   const ref = useRef<any>()
   const state = useRef<State>(initialState)

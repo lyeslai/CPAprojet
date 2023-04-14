@@ -4,14 +4,20 @@ type Coord = { x: number; y: number; dx: number; dy: number }
 type Ball = { coord: Coord; life: number; invincible?: number }
 
 /* Joueur */
-type Joueur = { coord: Coord; life: number, moveLeft: boolean, moveUp: boolean, moveDown: boolean, moveRight: boolean }
+type Joueur = { coord: Coord,  moveLeft: boolean, moveUp: boolean, moveDown: boolean, moveRight: boolean, 
+                frameIndexX : number,
+                frameIndexY : number, 
+                nbFrameLR : number,
+                nbFrameUD : number,
+                coeur : number }
+type Slime = { coord : Coord; life : number, nbFrameLR : number, frameIndex : number}
 
 type Size = { height: number; width: number }
 type Bordure = { coordupleft: Coord; size: Size }
 
 export type State = {
   joueur: Joueur
-  /*pos: Array<Ball>*/
+  slime : Slime 
   size: Size
   obstacles: Array<Bordure>
   endOfGame: boolean
@@ -79,6 +85,33 @@ const iterate = (bound: Size) => (obstacles: Array<Bordure>) => (joueur: Joueur)
   }
 }
 
+const iterateslime = (bound: Size) => (obstacles: Array<Bordure>) => (slime: Slime) => {
+  const coord = slime.coord 
+  if (coord.y < conf.RADIUS) {
+    return { ...slime, coord: { x: coord.x + coord.dx, y: coord.y + coord.dy, dx: coord.dx, dy: coord.dy > 0 ? coord.dy : 0 }, moveUp: false }
+  }
+  if (coord.y + conf.RADIUS > bound.height) {
+    return { ...slime, coord: { x: coord.x + coord.dx, y: coord.y + coord.dy, dx: coord.dx, dy: coord.dy < 0 ? coord.dy : 0 }, moveDown: false }
+  }
+  if (coord.x < conf.RADIUS) {
+    return { ...slime, coord: { x: coord.x + coord.dx, y: coord.y + coord.dy, dx: coord.dx > 0 ? coord.dx : 0, dy: coord.dy }, moveLeft: false }
+  }
+  if (coord.x + conf.RADIUS > bound.width) {
+    return { ...slime, coord: { x: coord.x + coord.dx, y: coord.y + coord.dy, dx: coord.dx < 0 ? coord.dx : 0, dy: coord.dy < 0 ? coord.dy : 0 }, moveRight: false }
+  }
+    return {
+      ...slime, 
+      coord : {
+        x : coord.x + coord.dx, 
+        y : coord.y + coord.dy, 
+        dx : coord.dx * conf.FRICTION, 
+        dy : coord.dy * conf.FRICTION
+      }
+    }
+
+  }
+
+
 export const click =
   (state: State) =>
     (event: PointerEvent): State => {
@@ -101,30 +134,60 @@ export const onKeyBoardMove =
 
       const keydown = event.key
       const target = state.joueur
-      if (target) {
+      const targetslime = state.slime 
+
+      if (target && targetslime) {
         switch (keydown) {
           case "z":
             if (target.moveUp) {
               target.coord.dy = -conf.MAXMOVE
+              target.frameIndexX =(target.frameIndexX + 1 ) % target.nbFrameLR
+              target.frameIndexY = 0
             }
             break;
           case "q":
             if (target.moveLeft) {
               target.coord.dx = -conf.MAXMOVE
+              target.frameIndexX =(target.frameIndexX + 1 ) % target.nbFrameLR
+              target.frameIndexY = 3
             }
             break;
           case "s":
             if (target.moveDown) {
               target.coord.dy = conf.MAXMOVE
+              target.frameIndexX =(target.frameIndexX + 1 ) % target.nbFrameLR
+              target.frameIndexY = 2
             }
             break;
           case "d":
             if (target.moveRight) {
               target.coord.dx = conf.MAXMOVE
+              target.frameIndexX =(target.frameIndexX + 1 ) % target.nbFrameLR
+              target.frameIndexY = 1
             }
             break;
+          case "ArrowLeft":
+            targetslime.coord.dx = -conf.MAXMOVE
+            targetslime.frameIndex =(targetslime.frameIndex+ 1 ) % targetslime.nbFrameLR
+            console.log(targetslime.frameIndex)
+            break;
+          case "ArrowUp":
+            targetslime.coord.dy = -conf.MAXMOVE
+            targetslime.frameIndex =(targetslime.frameIndex+ 1 ) % targetslime.nbFrameLR
+            break;
+          case "ArrowDown":
+            targetslime.coord.dy = conf.MAXMOVE
+            targetslime.frameIndex =(targetslime.frameIndex + 1 ) % targetslime.nbFrameLR
+
+            break;
+          case "ArrowRight":
+            targetslime.coord.dx = conf.MAXMOVE
+            targetslime.frameIndex =(targetslime.frameIndex+ 1 ) % targetslime.nbFrameLR
+            break;
+          
+
         }
-      }
+      }      
       return state
     }
 
@@ -133,19 +196,40 @@ export const onKeyBoardUpUp =
     (event: KeyboardEvent): State => {
       const keyup = event.key
       const target = state.joueur
+      const targetslime = state.slime 
       if (target) {
         switch (keyup) {
           case "z":
             target.coord.dy = 0
+            target.frameIndexX = 0 
+
             break;
           case "q":
             target.coord.dx = 0
+            target.frameIndexX = 0 
+
             break;
           case "s":
             target.coord.dy = 0
+            target.frameIndexX = 0 
+
             break;
           case "d":
             target.coord.dx = 0
+            target.frameIndexX = 0 
+
+            break;
+          case "ArrowLeft":
+            targetslime.coord.dx = 0
+            break;
+          case "ArrowUp":
+            targetslime.coord.dy = 0
+            break;
+          case "ArrowDown":
+            targetslime.coord.dy = 0
+            break;
+          case "ArrowRight":
+            targetslime.coord.dx = 0
             break;
         }
       }
@@ -235,43 +319,9 @@ const collideBoing = (p1: Coord, p2: Coord) => {
 }
 
 export const step = (state: State) => {
-  /*state.pos.map((p1, i, arr) => {
-    arr.slice(i + 1).map((p2) => {
-      if (collide(p1.coord, p2.coord)) {
-        if (!p1.invincible) {
-          p1.life--
-          p1.invincible = 20
-        }
-        if (!p2.invincible) {
-          p2.life--
-          p2.invincible = 20
-        }
-        collideBoing(p1.coord, p2.coord)
-      }
-    })
-  })*/
-  state.obstacles.map((o) => {
-    console.log(collideObstaclesRightBorder(state.joueur,o))
-    if (collideObstaclesRightBorder(state.joueur, o)) {
-      state.joueur.moveLeft = false 
-      state.joueur.coord.dx = state.joueur.coord.dx > 0 ? state.joueur.coord.dx : 0   
-    }
-    if(collideObstaclesLeftBorder(state.joueur,o)){
-      state.joueur.moveRight = false
-      state.joueur.coord.dx = state.joueur.coord.dx < 0 ? state.joueur.coord.dx : 0 
-    }
-    if(collideObstaclesTopBorder(state.joueur,o)){
-      state.joueur.moveDown = false
-      state.joueur.coord.dy = state.joueur.coord.dy < 0 ? state.joueur.coord.dy : 0 
-    }
-    if(collideObstaclesBottomBorder(state.joueur,o)){
-      state.joueur.moveUp= false
-      state.joueur.coord.dy = state.joueur.coord.dy > 0 ? state.joueur.coord.dy : 0 
-    }
-
-  })
   return {
     ...state,
+    slime : (iterateslime(state.size))(state.obstacles)(state.slime), 
     joueur: (iterate(state.size))(state.obstacles)(state.joueur),
     /*pos: state.pos.map(iterate(state.size)).filter((p) => p.life > 0),*/
   }

@@ -7,11 +7,20 @@ const COLORS = {
 }
 
 
-var link_img = new Image();
+const link_img = new Image();
 link_img.src = "link2.png"
+
+const coeur_img = new Image();
+coeur_img.src = "coeur_rempli.png"
+
+const coeur_vide_img = new Image();
+coeur_vide_img.src = "coeur_vide.png"
 
 const map_img = new Image();
 map_img.src = "map.png"
+
+const slime_img = new Image();
+slime_img.src = "characters/slime.png"
 
 const toDoubleHexa = (n: number) =>
   n < 16 ? '0' + n.toString(16) : n.toString(16)
@@ -50,13 +59,18 @@ const clear = (ctx: CanvasRenderingContext2D) => {
 
 const drawPlayer = (
   ctx: CanvasRenderingContext2D,
-  { x, y }: { x: number; y: number }
+  { x, y }: { x: number; y: number },
+  frameIndexX : number,
+  frameIndexY : number,
 ) => {
   ctx.beginPath()
   /*ctx.fillStyle = color
   ctx.arc(x, y, conf.RADIUS, 0, 2 * Math.PI)
   ctx.fill()*/ 
-  ctx.drawImage(link_img,24,72,24,32, x,y, conf.RADIUS*2, conf.RADIUS*2.3)
+  //tx.arc(x, y, conf.RADIUS*2, 0, 2 * Math.PI)
+  //ctx.fill()
+  ctx.drawImage(link_img,24*frameIndexX,32*frameIndexY,24,32, x,y,24*1.5,32*1.5)
+
 }
 
 const drawBordure = (
@@ -84,6 +98,42 @@ const drawRectangle = (
     
   }
 
+const drawHearts = (
+    ctx : CanvasRenderingContext2D,
+    coeur : number
+) => {
+  if (coeur == 3 ){
+    ctx.drawImage(coeur_img, 0,0, 257,214,30,20,40,30)
+    ctx.drawImage(coeur_img, 0,0, 257,214,75,20,40,30)
+    ctx.drawImage(coeur_img, 0,0, 257,214,120,20,40,30)
+  }
+  if (coeur == 2){
+    ctx.drawImage(coeur_img, 0,0, 257,214,30,20,40,30)
+    ctx.drawImage(coeur_img, 0,0, 257,214,75,20,40,30)
+    ctx.drawImage(coeur_vide_img, 0,0, 257,214,120,20,40,30)
+  }
+  if (coeur == 1) {
+    ctx.drawImage(coeur_img, 0,0, 257,214,30,20,40,30)
+    ctx.drawImage(coeur_vide_img, 0,0, 257,214,75,20,40,30)
+    ctx.drawImage(coeur_vide_img, 0,0, 257,214,120,20,40,30)
+  }
+  if (coeur == 0){
+    ctx.drawImage(coeur_img, 0,0, 257,214,30,20,40,30)
+    ctx.drawImage(coeur_vide_img, 0,0, 257,214,75,20,40,30)
+    ctx.drawImage(coeur_vide_img, 0,0, 257,214,120,20,40,30)
+  }
+}
+
+const drawSlime = ( 
+    ctx : CanvasRenderingContext2D, 
+    coord : { x : number, y : number},
+    frameIndex : number 
+) => {
+  ctx.drawImage(slime_img,32*frameIndex,64,32,32,coord.x,coord.y,60,60)
+
+}
+
+
 const computeColor = (life: number, maxLife: number, baseColor: string) =>
   rgbaTorgb(baseColor, (maxLife - life) * (1 / maxLife))
 
@@ -91,12 +141,11 @@ export const render = (ctx: CanvasRenderingContext2D) => (state: State) => {
   
   clear(ctx)
   ctx.drawImage(map_img,0,0,1009,520,0,0,state.size.width,state.size.height)
+  drawHearts(ctx,state.joueur.coeur)
 
-  drawPlayer(ctx, state.joueur.coord)
-  /*
-  state.pos.map((c) =>
-    drawCirle(ctx, c.coord, computeColor(c.life, conf.BALLLIFE, COLORS.RED))
-  )*/
+  drawSlime(ctx,state.slime.coord,state.slime.frameIndex)
+  drawPlayer(ctx, state.joueur.coord,state.joueur.frameIndexX,state.joueur.frameIndexY)
+
 
   /*state.obstacles.map((c) =>
     drawRectangle(ctx, c.coordupleft, c.size, COLORS.GREEN)

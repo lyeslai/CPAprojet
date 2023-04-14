@@ -7,11 +7,11 @@ const COLORS = {
 }
 
 
-var poule = new Image();
-poule.src = "link2.png"
+var link_img = new Image();
+link_img.src = "link2.png"
 
-const img = new Image();
-img.src = "map.png"
+const map_img = new Image();
+map_img.src = "map.png"
 
 const toDoubleHexa = (n: number) =>
   n < 16 ? '0' + n.toString(16) : n.toString(16)
@@ -48,17 +48,15 @@ const clear = (ctx: CanvasRenderingContext2D) => {
   ctx.fillRect(0, 0, width, height)
 }
 
-const drawCirle = (
+const drawPlayer = (
   ctx: CanvasRenderingContext2D,
-  { x, y }: { x: number; y: number },
-  color: string
+  { x, y }: { x: number; y: number }
 ) => {
   ctx.beginPath()
   /*ctx.fillStyle = color
   ctx.arc(x, y, conf.RADIUS, 0, 2 * Math.PI)
   ctx.fill()*/ 
-  ctx.drawImage(poule,24,72,24,32, x,y, conf.RADIUS*3, conf.RADIUS*3.2)
-  
+  ctx.drawImage(link_img,24,72,24,32, x,y, conf.RADIUS*2, conf.RADIUS*2.3)
 }
 
 const drawBordure = (
@@ -92,13 +90,15 @@ const computeColor = (life: number, maxLife: number, baseColor: string) =>
 export const render = (ctx: CanvasRenderingContext2D) => (state: State) => {
   
   clear(ctx)
-  ctx.drawImage(img,0,0,1009,520,0,0,state.size.width,state.size.height)
+  ctx.drawImage(map_img,0,0,1009,520,0,0,state.size.width,state.size.height)
 
+  drawPlayer(ctx, state.joueur.coord)
+  /*
   state.pos.map((c) =>
     drawCirle(ctx, c.coord, computeColor(c.life, conf.BALLLIFE, COLORS.RED))
-  )
-  /*
-  state.pos1.map((c) =>
+  )*/
+
+  /*state.obstacles.map((c) =>
     drawRectangle(ctx, c.coordupleft, c.size, COLORS.GREEN)
   )*/
 

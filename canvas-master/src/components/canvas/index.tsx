@@ -17,20 +17,20 @@ const initCanvas =
 
 const Canvas = ({ height, width }: { height: number; width: number }) => {
   const initialState: State = {
-    pos: new Array(1).fill(1).map((_) => ({
-      life: conf.BALLLIFE,
+    joueur : {
+      life : 3, 
       coord: {
         x: randomInt(820) + 80,
         y: randomInt(500) + 100,
         dx: 0,
         dy: 0
       },
-    })),
-    pos1 : new Array(6).fill(1).map((_) => ({
-      coordupleft : {x : randomInt(820) + 80,  y : randomInt(500) + 100, dx: 0 , dy: 0},
-    size : {height : 40, width : 40},
-    })),
-    
+      moveLeft : true,
+      moveUp : true,
+      moveDown : true, 
+      moveRight : true
+    },
+    obstacles : conf.OBSTACLES,
     size: { height, width },
     endOfGame: true,
   }
@@ -39,7 +39,7 @@ const Canvas = ({ height, width }: { height: number; width: number }) => {
   const state = useRef<State>(initialState)
 
   const iterate = (ctx: CanvasRenderingContext2D) => {
-    state.current = step(state.current)
+    state.current = step(state.current) 
     state.current.endOfGame = !endOfGame(state.current)
     render(ctx)(state.current)
     if (!state.current.endOfGame) requestAnimationFrame(() => iterate(ctx))
@@ -73,6 +73,7 @@ const Canvas = ({ height, width }: { height: number; width: number }) => {
       ref.current.removeEventListener('click', onClick)
       ref.current.removeEventListener('mousemove', onMove)
       window.removeEventListener('keydown', onKeyBoard)
+      window.removeEventListener('keyup', onKeyBoardUp)
 
     }
   }, [])

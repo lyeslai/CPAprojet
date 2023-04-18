@@ -1,4 +1,4 @@
-import * as conf from './conf'
+/*import * as conf from './conf'*/
 import { State } from './state'
 const COLORS = {
   RED: '#ff0000',
@@ -69,11 +69,11 @@ const drawPlayer = (
   ctx.fill()*/ 
   //tx.arc(x, y, conf.RADIUS*2, 0, 2 * Math.PI)
   //ctx.fill()
-  ctx.drawImage(link_img,24*frameIndexX,32*frameIndexY,24,32, x,y,24*1.5,32*1.5)
-
+  ctx.drawImage(link_img,24*frameIndexX,32*frameIndexY,24,32, x,y,24,32)
+ 
 }
 
-const drawBordure = (
+/*const drawBordure = (
   ctx : CanvasRenderingContext2D, 
   upleft : {x : number, y : number}, 
   size : { width : number, height : number}
@@ -81,7 +81,7 @@ const drawBordure = (
     ctx.beginPath()
     ctx.rect(upleft.x, upleft.y, size.width, size.height)
     ctx.stroke()
-  }
+  }*/
 
 const drawRectangle = (
   ctx : CanvasRenderingContext2D, 
@@ -102,22 +102,22 @@ const drawHearts = (
     ctx : CanvasRenderingContext2D,
     coeur : number
 ) => {
-  if (coeur == 3 ){
+  if (coeur === 3 ){
     ctx.drawImage(coeur_img, 0,0, 257,214,30,20,40,30)
     ctx.drawImage(coeur_img, 0,0, 257,214,75,20,40,30)
     ctx.drawImage(coeur_img, 0,0, 257,214,120,20,40,30)
   }
-  if (coeur == 2){
+  if (coeur === 2){
     ctx.drawImage(coeur_img, 0,0, 257,214,30,20,40,30)
     ctx.drawImage(coeur_img, 0,0, 257,214,75,20,40,30)
     ctx.drawImage(coeur_vide_img, 0,0, 257,214,120,20,40,30)
   }
-  if (coeur == 1) {
+  if (coeur === 1) {
     ctx.drawImage(coeur_img, 0,0, 257,214,30,20,40,30)
     ctx.drawImage(coeur_vide_img, 0,0, 257,214,75,20,40,30)
     ctx.drawImage(coeur_vide_img, 0,0, 257,214,120,20,40,30)
   }
-  if (coeur == 0){
+  if (coeur === 0){
     ctx.drawImage(coeur_img, 0,0, 257,214,30,20,40,30)
     ctx.drawImage(coeur_vide_img, 0,0, 257,214,75,20,40,30)
     ctx.drawImage(coeur_vide_img, 0,0, 257,214,120,20,40,30)
@@ -134,9 +134,9 @@ const drawSlime = (
 }
 
 
-const computeColor = (life: number, maxLife: number, baseColor: string) =>
+/*const computeColor = (life: number, maxLife: number, baseColor: string) =>
   rgbaTorgb(baseColor, (maxLife - life) * (1 / maxLife))
-
+*/
 export const render = (ctx: CanvasRenderingContext2D) => (state: State) => {
   
   clear(ctx)

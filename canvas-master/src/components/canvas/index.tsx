@@ -1,10 +1,10 @@
 import * as conf from './conf'
-import { useRef, useEffect, KeyboardEvent } from 'react'
+import { useRef, useEffect} from 'react'
 import { State, step, click, mouseMove, onKeyBoardMove, onKeyBoardUpUp , endOfGame} from './state'
 import { render } from './renderer'
 
-const randomInt = (max: number) => Math.floor(Math.random() * max)
-const randomSign = () => Math.sign(Math.random() - 0.5)
+/*const randomInt = (max: number) => Math.floor(Math.random() * max)
+const randomSign = () => Math.sign(Math.random() - 0.5)*/
 
 const initCanvas =
   (iterate: (ctx: CanvasRenderingContext2D) => void) =>
@@ -19,8 +19,8 @@ const Canvas = ({ height, width }: { height: number; width: number }) => {
   const initialState: State = {
     joueur : {
       coord: {
-        x: 600,
-        y: 100,
+        x: 501,
+        y: 306,
         dx: 0,
         dy: 0
       },
@@ -46,14 +46,11 @@ const Canvas = ({ height, width }: { height: number; width: number }) => {
       nbFrameLR : 7
     },
     obstacles : conf.OBSTACLES,
-    size: { width , height },
+    size: { width : 1008 , height : 520  },
     endOfGame: true
-    
   }
 
  
-
-
   const ref = useRef<any>()
   const state = useRef<State>(initialState)
 
@@ -71,12 +68,12 @@ const Canvas = ({ height, width }: { height: number; width: number }) => {
     state.current = mouseMove(state.current)(e)
   }
 
-  const onKeyBoard = (e: KeyboardEvent) => {    
+  const onKeyBoard = (e: any) => {    
     state.current = onKeyBoardMove(state.current)(e)
   }
 
 
-  const onKeyBoardUp = (e: KeyboardEvent) => {
+  const onKeyBoardUp = (e: any) => {
     state.current = onKeyBoardUpUp(state.current)(e)
   }
 

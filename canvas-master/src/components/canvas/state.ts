@@ -1,7 +1,7 @@
 import { KeyboardEvent } from 'react';
 import * as conf from './conf'
 type Coord = { x: number; y: number; dx: number; dy: number }
-type Ball = { coord: Coord; life: number; invincible?: number }
+/*type Ball = { coord: Coord; life: number; invincible?: number }*/
 
 /* Joueur */
 type Joueur = { coord: Coord,  moveLeft: boolean, moveUp: boolean, moveDown: boolean, moveRight: boolean, 
@@ -26,64 +26,75 @@ export type State = {
 const dist2 = (o1: Coord, o2: Coord) =>
   Math.pow(o1.x - o2.x, 2) + Math.pow(o1.y - o2.y, 2)
 
-const iterate = (bound: Size) => (obstacles: Array<Bordure>) => (joueur: Joueur) => {
-  const coord = joueur.coord
+  const iterate = (bound: Size) => (obstacles: Array<Bordure>) => (joueur: Joueur) => {
+    const coord = joueur.coord
+    let collided = false; // variable indiquant si une collision a eu lieu ou non
+    
+    if (coord.y < conf.SIZEY) {
+      return { ...joueur, coord: { x: coord.x + coord.dx, y: coord.y + coord.dy, dx: coord.dx, dy: coord.dy > 0 ? coord.dy : 0 }, moveUp: false }
+    }
+    if (coord.y + conf.SIZEY > bound.height) {
+      return { ...joueur, coord: { x: coord.x + coord.dx, y: coord.y + coord.dy, dx: coord.dx, dy: coord.dy < 0 ? coord.dy : 0 }, moveDown: false }
+    }
+    if (coord.x < conf.SIZEX) {
+      return { ...joueur, coord: { x: coord.x + coord.dx, y: coord.y + coord.dy, dx: coord.dx > 0 ? coord.dx : 0, dy: coord.dy }, moveLeft: false }
+    }
+    if (coord.x + conf.SIZEX > bound.width) {
+      return { ...joueur, coord: { x: coord.x + coord.dx, y: coord.y + coord.dy, dx: coord.dx < 0 ? coord.dx : 0, dy: coord.dy < 0 ? coord.dy : 0 }, moveRight: false }
+    }
   
-  if (coord.y < conf.RADIUS) {
-    return { ...joueur, coord: { x: coord.x + coord.dx, y: coord.y + coord.dy, dx: coord.dx, dy: coord.dy > 0 ? coord.dy : 0 }, moveUp: false }
-  }
-  if (coord.y + conf.RADIUS > bound.height) {
-    return { ...joueur, coord: { x: coord.x + coord.dx, y: coord.y + coord.dy, dx: coord.dx, dy: coord.dy < 0 ? coord.dy : 0 }, moveDown: false }
-  }
-  if (coord.x < conf.RADIUS) {
-    return { ...joueur, coord: { x: coord.x + coord.dx, y: coord.y + coord.dy, dx: coord.dx > 0 ? coord.dx : 0, dy: coord.dy }, moveLeft: false }
-  }
-  if (coord.x + conf.RADIUS > bound.width) {
-    return { ...joueur, coord: { x: coord.x + coord.dx, y: coord.y + coord.dy, dx: coord.dx < 0 ? coord.dx : 0, dy: coord.dy < 0 ? coord.dy : 0 }, moveRight: false }
-  }
+    for(const o of obstacles){
+      let dx = coord.dx;
+      let dy = coord.dy;
+      if (collideObstaclesRightBorder(joueur, o)) {
+        joueur.moveLeft = false 
+        dx = 0  
+        collided = true; // une collision a eu lieu
+      }
+      
+      if(collideObstaclesLeftBorder(joueur,o)){
+        joueur.moveRight = false
+        dx = 0 
+        collided = true;
+      }
+      
+      if(collideObstaclesTopBorder(joueur,o)){
+        joueur.moveDown = false
+        dy = 0 
+        collided = true;
+      }
+      if(collideObstaclesBottomBorder(joueur,o)){
+        joueur.moveUp= false
+        dy = 0 
+        collided = true;
+      }
+      if (collided) { 
+              return { ...joueur, coord: { x: coord.x + dx, y: coord.y + dy, dx, dy }}
 
-  for(const o of obstacles){
-    let dx = coord.dx;
-    let dy = coord.dy;
-    if (collideObstaclesRightBorder(joueur, o)) {
-      joueur.moveLeft = false 
-      dx = 0  
+      }
+      joueur.coord = {
+        x: coord.x + dx,
+        y: coord.y + dy,
+        dx: dx * conf.FRICTION,
+        dy: dy * conf.FRICTION
+      }
     }
-    if(collideObstaclesLeftBorder(joueur,o)){
-      joueur.moveRight = false
-      dx = 0 
+  
+    return {
+      ...joueur,
+      moveLeft: true,
+      moveUp: true,
+      moveDown: true,
+      moveRight: true,
+      coord: {
+        x: coord.x + coord.dx,
+        y: coord.y + coord.dy,
+        dx: coord.dx * conf.FRICTION,
+        dy: coord.dy * conf.FRICTION
+      },
     }
-    if(collideObstaclesTopBorder(joueur,o)){
-      joueur.moveDown = false
-      dy = 0 
-    }
-    if(collideObstaclesBottomBorder(joueur,o)){
-      joueur.moveUp= false
-      dy = 0 
-    }
-    joueur.coord = {
-      x: coord.x + dx,
-      y: coord.y + dy,
-      dx: dx * conf.FRICTION,
-      dy: dy * conf.FRICTION
-    }
-    break;
   }
-
-  return {
-    ...joueur,
-    moveLeft: true,
-    moveUp: true,
-    moveDown: true,
-    moveRight: true,
-    coord: {
-      x: coord.x + coord.dx,
-      y: coord.y + coord.dy,
-      dx: coord.dx * conf.FRICTION,
-      dy: coord.dy * conf.FRICTION
-    },
-  }
-}
+  
 
 const iterateslime = (bound: Size) => (obstacles: Array<Bordure>) => (slime: Slime) => {
   const coord = slime.coord 
@@ -236,65 +247,61 @@ export const onKeyBoardUpUp =
       return state
     }
 
-const collide = (o1: Coord, o2: Coord) =>
-  dist2(o1, o2) < Math.pow(2 * conf.RADIUS, 2)
+/*const collide = (o1: Coord, o2: Coord) =>
+  dist2(o1, o2) < Math.pow(2 * conf.RADIUS, 2)*/
 
-const collideObstaclesRightBorder = (joueur: Joueur, obstacle: Bordure) => {
-  if (joueur.coord.x - conf.RADIUS*2 < obstacle.coordupleft.x + obstacle.size.width && joueur.coord.x > obstacle.coordupleft.x + obstacle.size.width) {
-    if (joueur.coord.y < obstacle.coordupleft.y) {
-      return Math.pow(obstacle.coordupleft.x + obstacle.size.width - joueur.coord.x, 2) + Math.pow(obstacle.coordupleft.y - joueur.coord.y, 2)
-        < Math.pow(conf.RADIUS*2, 2);
-    }
-    if (obstacle.coordupleft.y < joueur.coord.y && joueur.coord.y < obstacle.coordupleft.y + obstacle.size.height) {
-      return true;
-    }
-    return Math.pow(obstacle.coordupleft.x + obstacle.size.width - joueur.coord.x, 2) + Math.pow(obstacle.coordupleft.y + obstacle.size.height - joueur.coord.y, 2)
-      < Math.pow(conf.RADIUS*2, 2);
-  }
-}
-
-
-const collideObstaclesLeftBorder = (joueur: Joueur, obstacle: Bordure) => {
-  if(joueur.coord.x + conf.RADIUS*2 > obstacle.coordupleft.x && joueur.coord.x<obstacle.coordupleft.x){
-      if(joueur.coord.y < obstacle.coordupleft.y){
-        return Math.pow(obstacle.coordupleft.x - joueur.coord.x,2)+Math.pow(obstacle.coordupleft.y-joueur.coord.y,2) < Math.pow(conf.RADIUS*2,2)
+  const collideObstaclesRightBorder = (joueur: Joueur, obstacle: Bordure) => {
+    if (joueur.coord.x < obstacle.coordupleft.x + obstacle.size.width && joueur.coord.x + conf.SIZEX > obstacle.coordupleft.x + obstacle.size.width) {
+      if (joueur.coord.y < obstacle.coordupleft.y) {
+        return joueur.coord.x + conf.SIZEX > obstacle.coordupleft.x + obstacle.size.width && joueur.coord.y + conf.SIZEY > obstacle.coordupleft.y;
       }
-      if(obstacle.coordupleft.y < joueur.coord.y && joueur.coord.y < obstacle.coordupleft.y+ obstacle.size.height){
+      if (obstacle.coordupleft.y < joueur.coord.y + conf.SIZEY && joueur.coord.y < obstacle.coordupleft.y + obstacle.size.height) {
+        return true;
+      }
+      return joueur.coord.x + conf.SIZEX > obstacle.coordupleft.x + obstacle.size.width && joueur.coord.y < obstacle.coordupleft.y + obstacle.size.height;
+    }
+    return false;
+  }
+  
+  const collideObstaclesLeftBorder = (joueur: Joueur, obstacle: Bordure) => {
+    if(joueur.coord.x + conf.SIZEX > obstacle.coordupleft.x && joueur.coord.x<obstacle.coordupleft.x){
+        if(joueur.coord.y < obstacle.coordupleft.y){
+          return joueur.coord.x < obstacle.coordupleft.x + obstacle.size.width && joueur.coord.y + conf.SIZEY > obstacle.coordupleft.y;
+        }
+        if(obstacle.coordupleft.y < joueur.coord.y + conf.SIZEY && joueur.coord.y < obstacle.coordupleft.y+ obstacle.size.height){
+          return true
+        }
+        return joueur.coord.x < obstacle.coordupleft.x + obstacle.size.width && joueur.coord.y < obstacle.coordupleft.y + obstacle.size.height;
+    }
+    return false;
+  }
+  
+  const collideObstaclesTopBorder = (joueur: Joueur, obstacle : Bordure) => {
+    if(joueur.coord.y + conf.SIZEY > obstacle.coordupleft.y && joueur.coord.y < obstacle.coordupleft.y){
+      if(joueur.coord.x < obstacle.coordupleft.x){
+        return joueur.coord.x + conf.SIZEX > obstacle.coordupleft.x && joueur.coord.y < obstacle.coordupleft.y + obstacle.size.height;
+      }
+      if(obstacle.coordupleft.x < joueur.coord.x + conf.SIZEX && joueur.coord.x < obstacle.coordupleft.x + obstacle.size.width){
         return true
       }
-      return Math.pow(obstacle.coordupleft.x-joueur.coord.x,2)+Math.pow(obstacle.coordupleft.y+obstacle.size.height-joueur.coord.y,2) < Math.pow(conf.RADIUS*2,2)
+      return joueur.coord.x < obstacle.coordupleft.x + obstacle.size.width && joueur.coord.y < obstacle.coordupleft.y + obstacle.size.height;
+    }
+    return false;
   }
-
-  return false;
-}
-
-const collideObstaclesTopBorder = (joueur: Joueur, obstacle : Bordure) => {
-  if(joueur.coord.y + conf.RADIUS*2 > obstacle.coordupleft.y && joueur.coord.y < obstacle.coordupleft.y){
-    if(joueur.coord.x < obstacle.coordupleft.x){
-      return Math.pow(obstacle.coordupleft.x-joueur.coord.x,2)+Math.pow(obstacle.coordupleft.y-joueur.coord.y,2) < Math.pow(conf.RADIUS*2,2)
+  
+  const collideObstaclesBottomBorder = (joueur: Joueur, obstacle : Bordure) => {
+    if(joueur.coord.y < obstacle.coordupleft.y + obstacle.size.height && joueur.coord.y + conf.SIZEY > obstacle.coordupleft.y + obstacle.size.height){
+      if(joueur.coord.x < obstacle.coordupleft.x){
+        return joueur.coord.x + conf.SIZEX > obstacle.coordupleft.x && joueur.coord.y + conf.SIZEY > obstacle.coordupleft.y;
+      }
+      if(obstacle.coordupleft.x < joueur.coord.x + conf.SIZEX && joueur.coord.x < obstacle.coordupleft.x + obstacle.size.width){
+        return true
+      }
+      return joueur.coord.x < obstacle.coordupleft.x + obstacle.size.width && joueur.coord.y + conf.SIZEY > obstacle.coordupleft.y;
     }
-    if(obstacle.coordupleft.x < joueur.coord.x && joueur.coord.x < obstacle.coordupleft.x + obstacle.size.width){
-      return true
-    }
-    return Math.pow(obstacle.coordupleft.x+obstacle.size.width-joueur.coord.x,2)+Math.pow(obstacle.coordupleft.y-joueur.coord.y,2) < Math.pow(conf.RADIUS*2,2)
+    return false;
   }
-
-  return false;
-}
-
-const collideObstaclesBottomBorder = (joueur: Joueur, obstacle : Bordure) => {
-  if(joueur.coord.y - conf.RADIUS*2 < obstacle.coordupleft.y + obstacle.size.height && joueur.coord.y > obstacle.coordupleft.y + obstacle.size.height){
-    if(joueur.coord.x < obstacle.coordupleft.x){
-      return Math.pow(obstacle.coordupleft.x-joueur.coord.x,2)+Math.pow(obstacle.coordupleft.y+obstacle.size.height-joueur.coord.y,2) < Math.pow(conf.RADIUS*2,2)
-    }
-    if(obstacle.coordupleft.x < joueur.coord.x && joueur.coord.x < obstacle.coordupleft.x + obstacle.size.width){
-      return true
-    }
-    return Math.pow(obstacle.coordupleft.x+obstacle.size.width-joueur.coord.x,2)+Math.pow(obstacle.coordupleft.y+obstacle.size.height-joueur.coord.y,2) < Math.pow(conf.RADIUS*2,2)
-  }
-
-  return false;
-}
+  
 
 
 

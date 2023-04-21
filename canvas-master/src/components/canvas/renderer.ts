@@ -76,7 +76,6 @@ const drawPlayer = (
     default : 
       img = playerDown
   }
-
   ctx.drawImage(img,state.joueur.frame * img.width / 4,0, img.width /4 , img.height,state.joueur.coord.x, state.joueur.coord.y, img.width/4,img.height)
  
 }
@@ -119,9 +118,9 @@ export const render = (ctx: CanvasRenderingContext2D) => (state: State) => {
   drawMap(ctx,state) 
   drawPlayer(ctx,state)
   
-  state.obstacles.map((c) =>
+  /*state.obstacles.map((c) =>
     drawRectangle(ctx, c,COLORS.RED)
-  )
+  )*/
 
   /* 192 / 12 en x */ 
   /* 160 / 8 en y */ 

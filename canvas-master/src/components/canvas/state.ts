@@ -7,7 +7,7 @@ export type Coord = { x: number; y: number; dx: number; dy: number }
 type Joueur = { coord: Coord , frame : number }
 type Size = { height: number; width: number }
 type Bordure = { coordupleft: Coord; size: Size }
-type Carte = { coord : Coord, up : boolean, down : boolean, right : boolean, left : boolean, input : string}
+type Carte = { coord : Coord, up : boolean, down : boolean, right : boolean, left : boolean, input : string, moving : boolean}
 
 export type Obstacles = {coord : Coord}
 
@@ -23,38 +23,6 @@ export type State = {
 const dist2 = (o1: Coord, o2: Coord) =>
   Math.pow(o1.x - o2.x, 2) + Math.pow(o1.y - o2.y, 2)
 
-  const iterate = (bound: Size) => (joueur: Joueur) => {
-    const coord = joueur.coord
-    let collided = false; // variable indiquant si une collision a eu lieu ou non
-    
-    if (coord.y < conf.SIZEY) {
-      return { ...joueur, coord: { x: coord.x + coord.dx, y: coord.y + coord.dy, dx: coord.dx, dy: coord.dy > 0 ? coord.dy : 0 }, moveUp: false }
-    }
-    if (coord.y + conf.SIZEY > bound.height) {
-      return { ...joueur, coord: { x: coord.x + coord.dx, y: coord.y + coord.dy, dx: coord.dx, dy: coord.dy < 0 ? coord.dy : 0 }, moveDown: false }
-    }
-    if (coord.x < conf.SIZEX) {
-      return { ...joueur, coord: { x: coord.x + coord.dx, y: coord.y + coord.dy, dx: coord.dx > 0 ? coord.dx : 0, dy: coord.dy }, moveLeft: false }
-    }
-    if (coord.x + conf.SIZEX > bound.width) {
-      return { ...joueur, coord: { x: coord.x + coord.dx, y: coord.y + coord.dy, dx: coord.dx < 0 ? coord.dx : 0, dy: coord.dy < 0 ? coord.dy : 0 }, moveRight: false }
-    }
-  
-    return {
-      ...joueur,
-      moveLeft: true,
-      moveUp: true,
-      moveDown: true,
-      moveRight: true,
-      coord: {
-        x: coord.x + coord.dx,
-        y: coord.y + coord.dy,
-        dx: coord.dx * conf.FRICTION,
-        dy: coord.dy * conf.FRICTION
-      },
-    }
-  }
-  
 export const click =
   (state: State) =>
     (event: PointerEvent): State => {
@@ -127,58 +95,6 @@ export const onKeyBoardUpUp =
 
 /*const collide = (o1: Coord, o2: Coord) =>
   dist2(o1, o2) < Math.pow(2 * conf.RADIUS, 2)*/
-
-  const collideObstaclesRightBorder = (joueur: Joueur, obstacle: Bordure) => {
-    if (joueur.coord.x < obstacle.coordupleft.x + obstacle.size.width && joueur.coord.x + conf.SIZEX > obstacle.coordupleft.x + obstacle.size.width) {
-      if (joueur.coord.y < obstacle.coordupleft.y) {
-        return joueur.coord.x + conf.SIZEX > obstacle.coordupleft.x + obstacle.size.width && joueur.coord.y + conf.SIZEY > obstacle.coordupleft.y;
-      }
-      if (obstacle.coordupleft.y < joueur.coord.y + conf.SIZEY && joueur.coord.y < obstacle.coordupleft.y + obstacle.size.height) {
-        return true;
-      }
-      return joueur.coord.x + conf.SIZEX > obstacle.coordupleft.x + obstacle.size.width && joueur.coord.y < obstacle.coordupleft.y + obstacle.size.height;
-    }
-    return false;
-  }
-  
-  const collideObstaclesLeftBorder = (joueur: Joueur, obstacle: Bordure) => {
-    if(joueur.coord.x + conf.SIZEX > obstacle.coordupleft.x && joueur.coord.x<obstacle.coordupleft.x){
-        if(joueur.coord.y < obstacle.coordupleft.y){
-          return joueur.coord.x < obstacle.coordupleft.x + obstacle.size.width && joueur.coord.y + conf.SIZEY > obstacle.coordupleft.y;
-        }
-        if(obstacle.coordupleft.y < joueur.coord.y + conf.SIZEY && joueur.coord.y < obstacle.coordupleft.y+ obstacle.size.height){
-          return true
-        }
-        return joueur.coord.x < obstacle.coordupleft.x + obstacle.size.width && joueur.coord.y < obstacle.coordupleft.y + obstacle.size.height;
-    }
-    return false;
-  }
-  
-  const collideObstaclesTopBorder = (joueur: Joueur, obstacle : Bordure) => {
-    if(joueur.coord.y + conf.SIZEY > obstacle.coordupleft.y && joueur.coord.y < obstacle.coordupleft.y){
-      if(joueur.coord.x < obstacle.coordupleft.x){
-        return joueur.coord.x + conf.SIZEX > obstacle.coordupleft.x && joueur.coord.y < obstacle.coordupleft.y + obstacle.size.height;
-      }
-      if(obstacle.coordupleft.x < joueur.coord.x + conf.SIZEX && joueur.coord.x < obstacle.coordupleft.x + obstacle.size.width){
-        return true
-      }
-      return joueur.coord.x < obstacle.coordupleft.x + obstacle.size.width && joueur.coord.y < obstacle.coordupleft.y + obstacle.size.height;
-    }
-    return false;
-  }
-  
-  const collideObstaclesBottomBorder = (joueur: Joueur, obstacle : Bordure) => {
-    if(joueur.coord.y < obstacle.coordupleft.y + obstacle.size.height && joueur.coord.y + conf.SIZEY > obstacle.coordupleft.y + obstacle.size.height){
-      if(joueur.coord.x < obstacle.coordupleft.x){
-        return joueur.coord.x + conf.SIZEX > obstacle.coordupleft.x && joueur.coord.y + conf.SIZEY > obstacle.coordupleft.y;
-      }
-      if(obstacle.coordupleft.x < joueur.coord.x + conf.SIZEX && joueur.coord.x < obstacle.coordupleft.x + obstacle.size.width){
-        return true
-      }
-      return joueur.coord.x < obstacle.coordupleft.x + obstacle.size.width && joueur.coord.y + conf.SIZEY > obstacle.coordupleft.y;
-    }
-    return false;
-  }
   
 const collideBoing = (p1: Coord, p2: Coord) => {
   const nx = (p2.x - p1.x) / (2 * conf.RADIUS)
@@ -201,33 +117,92 @@ const collideBoing = (p1: Coord, p2: Coord) => {
 }
 
 const carteIterate = (state: State) => {
+
   if (state.map.down && state.map.input === 's'){
-    state.map.coord.y -= conf.MAXMOVE
-    state.obstacles.forEach((obstacle) => obstacle.coord.y -= conf.MAXMOVE)
+    collisionDown(state)
+    if (state.map.moving){
+      state.map.coord.y -= conf.MAXMOVE
+      state.obstacles.forEach((obstacle) => obstacle.coord.y -= conf.MAXMOVE)
+    }
+    
   }
   else if (state.map.right && state.map.input === 'd'){
-    state.map.coord.x -= conf.MAXMOVE
-    state.obstacles.forEach((obstacle) => obstacle.coord.x -= conf.MAXMOVE)
+    collisionRight(state)
+    if (state.map.moving){
+      state.map.coord.x -= conf.MAXMOVE
+      state.obstacles.forEach((obstacle) => obstacle.coord.x -= conf.MAXMOVE)
+    }
 
   }
   else if (state.map.left && state.map.input === 'q'){
-    state.map.coord.x += conf.MAXMOVE
-    state.obstacles.forEach((obstacle) => obstacle.coord.x += conf.MAXMOVE)
+    collisionLeft(state)
+    if (state.map.moving){
+      state.map.coord.x += conf.MAXMOVE
+      state.obstacles.forEach((obstacle) => obstacle.coord.x += conf.MAXMOVE)
+    }
 
   }
   else if (state.map.up && state.map.input === 'z'){
-    state.map.coord.y += conf.MAXMOVE
-    state.obstacles.forEach((obstacle) => obstacle.coord.y += conf.MAXMOVE)
+    collisionUp(state)
+    if (state.map.moving){
+      state.map.coord.y += conf.MAXMOVE
+      state.obstacles.forEach((obstacle) => obstacle.coord.y += conf.MAXMOVE)
+    }
   }
 }
 
-const persoIterate = (state: State) => {
-  
+const collisionLeft = (state: State) => {
+  state.map.moving = true 
+  const joueur = state.joueur
+  state.obstacles.forEach((obstacle) => {
+    if (joueur.coord.x + 48 >= obstacle.coord.x+ conf.MAXMOVE && 
+        joueur.coord.x <= obstacle.coord.x+ conf.MAXMOVE  + 48 &&
+        joueur.coord.y <= obstacle.coord.y + 48 && 
+        joueur.coord.y + 48 >= obstacle.coord.y){
+          state.map.moving = false 
+    }
+  })
+}
+const collisionRight = (state: State) => {
+  state.map.moving = true 
+  const joueur = state.joueur
+  state.obstacles.forEach((obstacle) => {
+    if (joueur.coord.x + 48 >= obstacle.coord.x- conf.MAXMOVE && 
+        joueur.coord.x <= obstacle.coord.x- conf.MAXMOVE  + 48 &&
+        joueur.coord.y <= obstacle.coord.y + 48 && 
+        joueur.coord.y + 48 >= obstacle.coord.y){
+          state.map.moving = false 
+    }
+  })
+}
+const collisionDown = (state: State) => {
+  state.map.moving = true 
+  const joueur = state.joueur
+  state.obstacles.forEach((obstacle) => {
+    if (joueur.coord.x + 48 >= obstacle.coord.x && 
+        joueur.coord.x <= obstacle.coord.x  + 48 &&
+        joueur.coord.y <= obstacle.coord.y - conf.MAXMOVE + 48 && 
+        joueur.coord.y + 48 >= obstacle.coord.y- conf.MAXMOVE){
+          state.map.moving = false 
+    }
+  })
+}
+
+const collisionUp = (state: State) => {
+  state.map.moving = true 
+  const joueur = state.joueur
+  state.obstacles.forEach((obstacle) => {
+    if (joueur.coord.x + 48 >= obstacle.coord.x && 
+        joueur.coord.x <= obstacle.coord.x  + 48 &&
+        joueur.coord.y <= obstacle.coord.y + conf.MAXMOVE + 48 && 
+        joueur.coord.y + 48 >= obstacle.coord.y+ conf.MAXMOVE){
+          state.map.moving = false 
+    }
+  })
 }
 
 export const step = (state: State) => {
   carteIterate(state)
-  persoIterate(state)
   return {
     ...state,
     //joueur: (iterate(state.size))(state.joueur),

@@ -11,7 +11,6 @@ for (let i = 0 ; i < conf.OBSTACLES.length ; i += 60){
   MapObstacles.push(conf.OBSTACLES.slice(i,i+60))
 }
 
-console.log(MapObstacles)
 const obstaclesReel : Array<Obstacles> = []
 MapObstacles.forEach((row,i) => {
   row.forEach((symbol,j) => {
@@ -26,7 +25,6 @@ MapObstacles.forEach((row,i) => {
   )
 })
 
-console.log(obstaclesReel)
 
 const initCanvas =
   (iterate: (ctx: CanvasRenderingContext2D) => void) =>
@@ -50,12 +48,13 @@ const Canvas = ({ height, width }: { height: number; width: number }) => {
       down : false,
       right : false,
       left : false,
+      moving : true,
       input : '',
     },
     joueur : {
       coord: {
-        x: 1024/2 + 64,
-        y: 576/ 2 + 64,
+        x: width/2 ,
+        y: height/ 2,
         dx: 0,
         dy: 0
       }, 

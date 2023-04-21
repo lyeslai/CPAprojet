@@ -1,10 +1,32 @@
 import * as conf from './conf'
 import { useRef, useEffect} from 'react'
-import { State, step, click, mouseMove, onKeyBoardMove, onKeyBoardUpUp , endOfGame} from './state'
+import { Obstacles, State, step, click, mouseMove, onKeyBoardMove, onKeyBoardUpUp , endOfGame} from './state'
 import { render } from './renderer'
 
 /*const randomInt = (max: number) => Math.floor(Math.random() * max)
 const randomSign = () => Math.sign(Math.random() - 0.5)*/
+
+const MapObstacles : Array<Array<number>> = []
+for (let i = 0 ; i < conf.OBSTACLES.length ; i += 60){
+  MapObstacles.push(conf.OBSTACLES.slice(i,i+60))
+}
+
+console.log(MapObstacles)
+const obstaclesReel : Array<Obstacles> = []
+MapObstacles.forEach((row,i) => {
+  row.forEach((symbol,j) => {
+    if (symbol === 421){
+    obstaclesReel.push(
+      {coord : 
+        { x : (j * 64) - 1472, y : (i * 64) - 1568, dx : 0 , dy : 0}
+      }
+    )
+    }
+  }
+  )
+})
+
+console.log(obstaclesReel)
 
 const initCanvas =
   (iterate: (ctx: CanvasRenderingContext2D) => void) =>
@@ -17,36 +39,30 @@ const initCanvas =
 
 const Canvas = ({ height, width }: { height: number; width: number }) => {
   const initialState: State = {
+    map : {
+      coord : {
+        x : -1472,
+        y : -1568,
+        dx : 0,
+        dy :0
+      },
+      up : false,
+      down : false,
+      right : false,
+      left : false,
+      input : '',
+    },
     joueur : {
       coord: {
-        x: 501,
-        y: 306,
+        x: 1024/2 + 64,
+        y: 576/ 2 + 64,
         dx: 0,
         dy: 0
-      },
-      moveLeft : true,
-      moveUp : true,
-      moveDown : true, 
-      moveRight : true,
-      frameIndexX : 0, 
-      frameIndexY : 0, 
-      nbFrameLR : 12,
-      nbFrameUD : 4,
-      coeur : 1
+      }, 
+      frame : 0 
     },
-    slime : {
-      life : 3, 
-      coord : {
-        x : 800,
-        y : 300,
-        dx : 0,
-        dy : 0
-      },
-      frameIndex : 0, 
-      nbFrameLR : 7
-    },
-    obstacles : conf.OBSTACLES,
-    size: { width : 1008 , height : 520  },
+    size: { width : 1024 , height : 576 },
+    obstacles : obstaclesReel,
     endOfGame: true
   }
 
@@ -93,7 +109,7 @@ const Canvas = ({ height, width }: { height: number; width: number }) => {
 
     }
   }, [])
-  return <canvas {...{ height, width, ref }} />
+  return <canvas {...{ height  , width, ref }} />
 }
 
 export default Canvas

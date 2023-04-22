@@ -1,6 +1,6 @@
 import * as conf from './conf'
 import { useRef, useEffect} from 'react'
-import { Obstacles, State, step, click, mouseMove, onKeyBoardMove, onKeyBoardUpUp , endOfGame} from './state'
+import { Herbe,Obstacles, State, step, mouseMove, onKeyBoardMove, onKeyBoardUpUp , endOfGame} from './state'
 import { render } from './renderer'
 
 /*const randomInt = (max: number) => Math.floor(Math.random() * max)
@@ -16,6 +16,25 @@ MapObstacles.forEach((row,i) => {
   row.forEach((symbol,j) => {
     if (symbol === 421){
     obstaclesReel.push(
+      {coord : 
+        { x : (j * 64) - 1472, y : (i * 64) - 1568, dx : 0 , dy : 0}
+      }
+    )
+    }
+  }
+  )
+})
+
+const MapRencontres : Array<Array<number>> = []
+for (let i = 0 ; i < conf.RENCONTRES.length ; i += 60){
+  MapRencontres.push(conf.RENCONTRES.slice(i,i+60))
+}
+
+const rencontresReel : Array<Herbe> = []
+MapRencontres.forEach((row,i) => {
+  row.forEach((symbol,j) => {
+    if (symbol === 421){
+    rencontresReel.push(
       {coord : 
         { x : (j * 64) - 1472, y : (i * 64) - 1568, dx : 0 , dy : 0}
       }
@@ -58,10 +77,14 @@ const Canvas = ({ height, width }: { height: number; width: number }) => {
         dx: 0,
         dy: 0
       }, 
-      frame : 0 
+      frame : 0 ,
+      moving : true
     },
     size: { width : 1024 , height : 576 },
     obstacles : obstaclesReel,
+    herbes : rencontresReel,
+    battle : false,
+    flashcount : 0,
     endOfGame: true
   }
 
@@ -74,9 +97,6 @@ const Canvas = ({ height, width }: { height: number; width: number }) => {
     state.current.endOfGame = !endOfGame(state.current)
     render(ctx)(state.current)
     if (!state.current.endOfGame) requestAnimationFrame(() => iterate(ctx))
-  }
-  const onClick = (e: PointerEvent) => {
-    state.current = click(state.current)(e)
   }
 
   const onMove = (e: PointerEvent) => {
@@ -95,20 +115,18 @@ const Canvas = ({ height, width }: { height: number; width: number }) => {
   useEffect(() => {
     if (ref.current) {
       initCanvas(iterate)(ref.current)
-      ref.current.addEventListener('click', onClick)
       ref.current.addEventListener('mousemove', onMove)
       window.addEventListener('keydown', onKeyBoard)
       window.addEventListener('keyup', onKeyBoardUp)
     }
     return () => {
-      ref.current.removeEventListener('click', onClick)
       ref.current.removeEventListener('mousemove', onMove)
       window.removeEventListener('keydown', onKeyBoard)
       window.removeEventListener('keyup', onKeyBoardUp)
 
     }
   }, [])
-  return <canvas {...{ height  , width, ref }} />
+  return <canvas {...{ width , height, ref }} style={{ backgroundColor: 'black' }} />
 }
 
 export default Canvas

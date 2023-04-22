@@ -1,5 +1,5 @@
 /*import * as conf from './conf'*/
-import { Obstacles,State } from './state'
+import { Herbe,Obstacles,State } from './state'
 const COLORS = {
   RED: '#ff0000',
   GREEN: '#00ff00',
@@ -22,6 +22,11 @@ playerRight.src = "playerRight.png"
 const map_img = new Image();
 map_img.src = "map1.png"
 
+const mapforeground_img = new Image();
+mapforeground_img.src = "foregroundmap1.png"
+
+const mapbattle_img = new Image();
+mapbattle_img.src = "battlemap.png"
 
 const toDoubleHexa = (n: number) =>
   n < 16 ? '0' + n.toString(16) : n.toString(16)
@@ -80,16 +85,6 @@ const drawPlayer = (
  
 }
 
-/*const drawBordure = (
-  ctx : CanvasRenderingContext2D, 
-  upleft : {x : number, y : number}, 
-  size : { width : number, height : number}
-  )       => {
-    ctx.beginPath()
-    ctx.rect(upleft.x, upleft.y, size.width, size.height)
-    ctx.stroke()
-  }*/
-
 const drawRectangle = (
   ctx : CanvasRenderingContext2D, 
   obstacle : Obstacles,
@@ -103,33 +98,76 @@ const drawRectangle = (
     ctx.fill()
     
   }
+const drawHerbe = (
+    ctx : CanvasRenderingContext2D, 
+    herbe : Herbe
+    )       => {
+      ctx.beginPath()
+      ctx.rect(herbe.coord.x, herbe.coord.y, 64, 64)
+      ctx.stroke()
+      ctx.fillStyle = COLORS.GREEN
+      
+      ctx.fill()
+      
+    }
 
 const drawMap = (ctx : CanvasRenderingContext2D, state : State) => {
   ctx.drawImage(map_img,state.map.coord.x,state.map.coord.y)
 }
 
+const drawForeGround = (ctx : CanvasRenderingContext2D, state : State) => {
+  ctx.drawImage(mapforeground_img,state.map.coord.x,state.map.coord.y)
+}
 
-/*const computeColor = (life: number, maxLife: number, baseColor: string) =>
-  rgbaTorgb(baseColor, (maxLife - life) * (1 / maxLife))
-*/
+const drawBlackScreen = (ctx : CanvasRenderingContext2D) => {
+  ctx.fillStyle = "black";
+  ctx.fillRect(0,0,ctx.canvas.width, ctx.canvas.height)
+}
+
+const clearScreen = (ctx : CanvasRenderingContext2D) =>  {
+  ctx.clearRect(0, 0, ctx.canvas.width,ctx.canvas.height);
+}
+
+const drawBattle = (ctx : CanvasRenderingContext2D) => {
+  ctx.drawImage(mapbattle_img,0,0,ctx.canvas.width,ctx.canvas.height*2/3)
+  ctx.fillRect(0,ctx.canvas.height*2/3,ctx.canvas.width, ctx.canvas.height/3  )
+}
+
+
 export const render = (ctx: CanvasRenderingContext2D) => (state: State) => {
-  
-  clear(ctx)
-  drawMap(ctx,state) 
-  drawPlayer(ctx,state)
-  
-  /*state.obstacles.map((c) =>
-    drawRectangle(ctx, c,COLORS.RED)
-  )*/
+  clear(ctx);
 
-  /* 192 / 12 en x */ 
-  /* 160 / 8 en y */ 
-
- 
+  if (state.battle) {
+    state.flashcount++;
+    if (state.flashcount < 30){
+      if (state.flashcount % 10 < 5) {
+        drawBlackScreen(ctx);
+      }
+      else {
+        drawMap(ctx, state);
+        drawPlayer(ctx, state);
+        drawForeGround(ctx, state);
+      }  
+   }else {
+    drawBattle(ctx)
+   }
+  }else {
+    drawMap(ctx, state);
+    drawPlayer(ctx, state);
+    drawForeGround(ctx, state);
+  }
 
   if (state.endOfGame) {
-    const text = 'END'
-    ctx.font = '48px arial'
-    ctx.strokeText(text, state.size.width / 2 - 200, state.size.height / 2)
+    const text = "END";
+    ctx.font = "48px arial";
+    ctx.strokeText(text, state.size.width / 2 - 200, state.size.height / 2);
   }
-}
+
+  
+};
+
+
+
+
+
+

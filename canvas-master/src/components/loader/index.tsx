@@ -1,6 +1,8 @@
 import './loader.css'
 
+
 const loader = () => (
+  
   <div className="lds-ellipsis">
     <div></div>
     <div></div>

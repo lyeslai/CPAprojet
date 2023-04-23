@@ -1,6 +1,6 @@
 import * as conf from './conf'
 import { useRef, useEffect} from 'react'
-import { Herbe,Obstacles, State, step, mouseMove, onKeyBoardMove, onKeyBoardUpUp , endOfGame} from './state'
+import { Herbe,Obstacles, State, step, mouseMove, onKeyBoardMove, onKeyBoardUpUp ,mouseClick, endOfGame} from './state'
 import { render } from './renderer'
 
 /*const randomInt = (max: number) => Math.floor(Math.random() * max)
@@ -107,20 +107,25 @@ const Canvas = ({ height, width }: { height: number; width: number }) => {
     state.current = onKeyBoardMove(state.current)(e)
   }
 
-
   const onKeyBoardUp = (e: any) => {
     state.current = onKeyBoardUpUp(state.current)(e)
+  }
+
+  const onMouseClick = (e: MouseEvent) => {
+    state.current = mouseClick(state.current)(e)
   }
 
   useEffect(() => {
     if (ref.current) {
       initCanvas(iterate)(ref.current)
       ref.current.addEventListener('mousemove', onMove)
+      ref.current.addEventListener('click', onMouseClick)
       window.addEventListener('keydown', onKeyBoard)
       window.addEventListener('keyup', onKeyBoardUp)
     }
     return () => {
       ref.current.removeEventListener('mousemove', onMove)
+      ref.current.removeEventListener('click', onMouseClick)
       window.removeEventListener('keydown', onKeyBoard)
       window.removeEventListener('keyup', onKeyBoardUp)
 

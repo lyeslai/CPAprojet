@@ -24,6 +24,13 @@ export type State = {
 
 }
 
+export const mouseClick = (state : State) => (event : MouseEvent) : State => {
+  if (state.battle){
+    return state
+  }
+  return state
+}
+
 export const onKeyBoardMove =
   (state: State) =>
     (event: KeyboardEvent): State => {
@@ -80,6 +87,7 @@ export const onKeyBoardUpUp =
       return state
     }
 
+  
 
 const carteIterate = (state: State) => {
 
@@ -204,7 +212,6 @@ export const step = (state: State) => {
   rencontrescombat(state)
   return {
     ...state,
-    //joueur: (iterate(state.size))(state.joueur),
   }
 }
 

@@ -8,25 +8,31 @@ const COLORS = {
 
 
 const playerDown = new Image();
-playerDown.src = "playerDown.png"
+playerDown.src = "SpritesPlayer/playerDown.png"
 
 const playerUp = new Image();
-playerUp.src = "playerUp.png"
+playerUp.src = "SpritesPlayer/playerUp.png"
 
 const playerLeft = new Image();
-playerLeft.src = "playerLeft.png"
+playerLeft.src = "SpritesPlayer/playerLeft.png"
 
 const playerRight = new Image();
-playerRight.src = "playerRight.png"
+playerRight.src = "SpritesPlayer/playerRight.png"
 
 const map_img = new Image();
-map_img.src = "map1.png"
+map_img.src = "Maps/map1.png"
 
 const mapforeground_img = new Image();
-mapforeground_img.src = "foregroundmap1.png"
+mapforeground_img.src = "Maps/foregroundmap1.png"
 
 const mapbattle_img = new Image();
-mapbattle_img.src = "battlemap.png"
+mapbattle_img.src = "Maps/battlemap.png"
+
+const reptincel = new Image();
+reptincel.src = "Poké/reptincel.png"
+
+const chenipan = new Image();
+chenipan.src = "Poké/chenipan.png"
 
 const toDoubleHexa = (n: number) =>
   n < 16 ? '0' + n.toString(16) : n.toString(16)
@@ -124,15 +130,62 @@ const drawBlackScreen = (ctx : CanvasRenderingContext2D) => {
   ctx.fillRect(0,0,ctx.canvas.width, ctx.canvas.height)
 }
 
-const clearScreen = (ctx : CanvasRenderingContext2D) =>  {
-  ctx.clearRect(0, 0, ctx.canvas.width,ctx.canvas.height);
+const drawReptincel = (ctx : CanvasRenderingContext2D) => {
+  ctx.drawImage(reptincel,300,300,300,300)
+}
+
+const drawChenipan = (ctx : CanvasRenderingContext2D) => {
+  ctx.drawImage(chenipan, 780,150,300,300)
+}
+
+const drawBarInterface = (ctx : CanvasRenderingContext2D) => {
+  ctx.font = "48px arial";
+
+  ctx.fillRect(0,570,ctx.canvas.width, ctx.canvas.height - 570)
+  ctx.fillStyle = "black"
+  ctx.strokeRect(0,570,ctx.canvas.width, ctx.canvas.height - 570)
+  ctx.strokeRect(1000,570,ctx.canvas.width - 1000, ctx.canvas.height - 570)
+
+  ctx.fillStyle = "red"
+  ctx.fillRect(0, 570, 500, ctx.canvas.height- 570)
+  ctx.strokeRect(0, 570, 500, ctx.canvas.height- 570)
+
+  ctx.fillStyle = "black"
+  const attack1 = "Lance-Flammes";
+  ctx.fillText(attack1,  70, 700);
+
+  ctx.fillStyle = "black"
+  ctx.fillRect(500, 570, 500, ctx.canvas.height- 570)
+  ctx.strokeRect(500, 570, 500, ctx.canvas.height- 570)
+
+  ctx.fillStyle = "white"
+  const attack2 = "Morsure";
+  ctx.fillText(attack2,  650, 700);
+
+  ctx.fillStyle = "black"
+  const text = "Attack";
+  ctx.fillText(text,  1100, 700);
+
+}
+
+const drawHpInterface = (ctx : CanvasRenderingContext2D) => {
+  ctx.fillStyle = "white"
+  ctx.fillRect(80,20, 400, 150)
+  ctx.fillRect(900,400, 400, 150)
+
+  ctx.fillStyle = "black"
+  ctx.strokeRect(80,20, 400, 150)
+  ctx.strokeRect(900,400, 400, 150)
+
 }
 
 const drawBattle = (ctx : CanvasRenderingContext2D) => {
-  ctx.drawImage(mapbattle_img,0,0,ctx.canvas.width,ctx.canvas.height*2/3)
-  ctx.fillRect(0,ctx.canvas.height*2/3,ctx.canvas.width, ctx.canvas.height/3  )
+  ctx.drawImage(mapbattle_img,0,0,ctx.canvas.width,ctx.canvas.height/*2/3*/)
+  drawReptincel(ctx)
+  drawChenipan(ctx)
+  drawBarInterface(ctx)
+  drawHpInterface(ctx)
 }
-
 
 export const render = (ctx: CanvasRenderingContext2D) => (state: State) => {
   clear(ctx);

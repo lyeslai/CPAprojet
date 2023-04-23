@@ -152,7 +152,7 @@ const drawBarInterface = (ctx : CanvasRenderingContext2D) => {
 
   ctx.fillStyle = "black"
   const attack1 = "Lance-Flammes";
-  ctx.fillText(attack1,  70, 700);
+  ctx.fillText(attack1,  70, 690);
 
   ctx.fillStyle = "black"
   ctx.fillRect(500, 570, 500, ctx.canvas.height- 570)
@@ -160,31 +160,79 @@ const drawBarInterface = (ctx : CanvasRenderingContext2D) => {
 
   ctx.fillStyle = "white"
   const attack2 = "Morsure";
-  ctx.fillText(attack2,  650, 700);
+  ctx.fillText(attack2,  650, 690);
 
   ctx.fillStyle = "black"
-  const text = "Attack";
-  ctx.fillText(text,  1100, 700);
+  const text = "Type";
+  ctx.fillText(text,  1120, 690);
 
 }
 
-const drawHpInterface = (ctx : CanvasRenderingContext2D) => {
+const drawHpInterface = (ctx : CanvasRenderingContext2D, state : State) => {
   ctx.fillStyle = "white"
-  ctx.fillRect(80,20, 400, 150)
-  ctx.fillRect(900,400, 400, 150)
+  ctx.fillRect(80,20, 400, 100)
+  ctx.fillRect(900,450, 400, 100)
+
+  ctx.fillStyle = "green" 
+  ctx.fillRect(100,60, (state.enemy.hp.actuel * 320) / state.enemy.hp.max, 20)
+  ctx.fillRect(920,490,(state.ally.hp.actuel * 320) / state.ally.hp.max,20)
 
   ctx.fillStyle = "black"
-  ctx.strokeRect(80,20, 400, 150)
-  ctx.strokeRect(900,400, 400, 150)
+  ctx.strokeRect(80,20, 400, 100)
+  ctx.strokeRect(900,450, 400, 100)
+
+  ctx.font = "24px arial";
+  ctx.fillText(state.enemy.nom, 100,50)
+
+  ctx.fillText(state.ally.nom,920,480)
+  ctx.fillText(state.ally.hp.actuel.toString(),1225,540)
+  ctx.fillText("/" + state.ally.hp.max.toString(),1250,540)
+}
+
+const drawDialogue = (ctx : CanvasRenderingContext2D, state: State) => {
+  ctx.fillRect(0,570,ctx.canvas.width, ctx.canvas.height - 570)
+  ctx.fillStyle = "black"
+  ctx.strokeRect(0,570,ctx.canvas.width, ctx.canvas.height - 570)
+  ctx.font = "50px arial";
+
+  switch (state.dialogue.action){
+    case "Ally" : 
+      ctx.fillText(state.ally.nom + " a utilise l'attaque " + state.ally.attack.nom, 20,630)
+      if (state.framedialogue > 50){
+        state.framedialogue = 0 
+        state.dialogue.action = "EndAlly"
+      }
+      state.framedialogue++
+      break
+    case "Enemy" : 
+      ctx.fillText(state.enemy.nom + " utilise l'attaque Charge", 20,630)
+      if(state.framedialogue > 50){
+        state.framedialogue = 0 
+        state.dialogue.action = "EndEnemy"
+      }
+      state.framedialogue++
+      break;
+    case "Victoire" : 
+      ctx.fillText(state.enemy.nom + " est k.o", 20,630)
+      if(state.framedialogue > 50){
+        state.dialogue.action = "End"
+      }
+      state.framedialogue++
+      break
+  }
 
 }
 
-const drawBattle = (ctx : CanvasRenderingContext2D) => {
+const drawBattle = (ctx : CanvasRenderingContext2D, state : State) => {
   ctx.drawImage(mapbattle_img,0,0,ctx.canvas.width,ctx.canvas.height/*2/3*/)
   drawReptincel(ctx)
   drawChenipan(ctx)
-  drawBarInterface(ctx)
-  drawHpInterface(ctx)
+  if (state.dialogue.actif){
+    drawDialogue(ctx,state)
+  }else{
+    drawBarInterface(ctx)
+  }
+  drawHpInterface(ctx,state)
 }
 
 export const render = (ctx: CanvasRenderingContext2D) => (state: State) => {
@@ -202,7 +250,7 @@ export const render = (ctx: CanvasRenderingContext2D) => (state: State) => {
         drawForeGround(ctx, state);
       }  
    }else {
-    drawBattle(ctx)
+    drawBattle(ctx,state)
    }
   }else {
     drawMap(ctx, state);

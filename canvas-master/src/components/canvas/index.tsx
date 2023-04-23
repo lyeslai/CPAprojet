@@ -80,6 +80,30 @@ const Canvas = ({ height, width }: { height: number; width: number }) => {
       frame : 0 ,
       moving : true
     },
+    enemy : {
+      nom : "",
+      hp : {
+        max : 0, 
+        actuel : 0
+      }
+    } ,
+    ally : {
+      hp : {
+      max : 40, 
+      actuel : 40
+      } ,
+      nom : "Reptincel",
+      attack : {
+        nom : "",
+        type : "", 
+        damage : 0,
+      }
+    },
+    dialogue : {
+      actif : false, 
+      action : "",
+    },
+    framedialogue : 0,
     size: { width : 1024 , height : 576 },
     obstacles : obstaclesReel,
     herbes : rencontresReel,

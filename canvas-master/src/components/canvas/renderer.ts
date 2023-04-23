@@ -138,7 +138,7 @@ const drawChenipan = (ctx : CanvasRenderingContext2D) => {
   ctx.drawImage(chenipan, 780,150,300,300)
 }
 
-const drawBarInterface = (ctx : CanvasRenderingContext2D) => {
+const drawBarInterface = (ctx : CanvasRenderingContext2D, state : State) => {
   ctx.font = "48px arial";
 
   ctx.fillRect(0,570,ctx.canvas.width, ctx.canvas.height - 570)
@@ -163,8 +163,7 @@ const drawBarInterface = (ctx : CanvasRenderingContext2D) => {
   ctx.fillText(attack2,  650, 690);
 
   ctx.fillStyle = "black"
-  const text = "Type";
-  ctx.fillText(text,  1120, 690);
+  ctx.fillText(state.typeattack,  1120, 690);
 
 }
 
@@ -174,7 +173,9 @@ const drawHpInterface = (ctx : CanvasRenderingContext2D, state : State) => {
   ctx.fillRect(900,450, 400, 100)
 
   ctx.fillStyle = "green" 
-  ctx.fillRect(100,60, (state.enemy.hp.actuel * 320) / state.enemy.hp.max, 20)
+  if (state.enemy.hp.actuel > 0) {
+    ctx.fillRect(100,60, (state.enemy.hp.actuel * 320) / state.enemy.hp.max, 20)
+  }
   ctx.fillRect(920,490,(state.ally.hp.actuel * 320) / state.ally.hp.max,20)
 
   ctx.fillStyle = "black"
@@ -230,7 +231,7 @@ const drawBattle = (ctx : CanvasRenderingContext2D, state : State) => {
   if (state.dialogue.actif){
     drawDialogue(ctx,state)
   }else{
-    drawBarInterface(ctx)
+    drawBarInterface(ctx,state)
   }
   drawHpInterface(ctx,state)
 }

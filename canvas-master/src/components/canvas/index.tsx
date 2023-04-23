@@ -108,6 +108,7 @@ const Canvas = ({ height, width }: { height: number; width: number }) => {
     obstacles : obstaclesReel,
     herbes : rencontresReel,
     battle : false,
+    typeattack : "Type",
     flashcount : 0,
     endOfGame: true
   }
@@ -123,7 +124,7 @@ const Canvas = ({ height, width }: { height: number; width: number }) => {
     if (!state.current.endOfGame) requestAnimationFrame(() => iterate(ctx))
   }
 
-  const onMove = (e: PointerEvent) => {
+  const onMove = (e: any) => {
     state.current = mouseMove(state.current)(e)
   }
 

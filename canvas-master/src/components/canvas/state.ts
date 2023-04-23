@@ -29,8 +29,30 @@ export type State = {
   dialogue : Dialogue
   flashcount : number
   framedialogue : number
+  typeattack : string
   endOfGame: boolean
 
+}
+
+/* A debug */ 
+export const onMove = (state : State) => (event : any) : State => {
+  if (state.battle && !state.dialogue.actif){
+    const canvas = event.target as HTMLCanvasElement;
+    const canvasRect = canvas.getBoundingClientRect();
+    const x = event.clientX - canvasRect.left;
+    const y = event.clientY - canvasRect.top;
+
+    const rect1 = { x: 0, y: 570, width: 500, height: 300 }
+    const rect2 = { x: 500, y: 570, width: 500, height: 300 } 
+
+    if (x >= rect1.x && x <= rect1.x + rect1.width && y >= rect1.y && y <= rect1.y + rect1.height) {
+      state.typeattack = "feu"
+    } else if (x >= rect2.x && x <= rect2.x + rect2.width && y >= rect2.y && y <= rect2.y + rect2.height) {
+      state.typeattack = "ténèbres"
+    }
+      return state
+    }
+  return state
 }
 
 export const mouseClick = (state : State) => (event : MouseEvent) : State => {
@@ -258,10 +280,6 @@ const combatIterate = (state: State) => {
       state.dialogue.actif = false 
     }
    
-  }else{
-    if (state.enemy.hp.actuel <= 0){
-      state.dialogue.action = "Victoire"
-    }
   }
 }
 

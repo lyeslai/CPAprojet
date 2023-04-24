@@ -1,5 +1,5 @@
 /*import * as conf from './conf'*/
-import { Herbe,Obstacles,State } from './state'
+import {Obstacles,State } from './state'
 const COLORS = {
   RED: '#ff0000',
   GREEN: '#00ff00',
@@ -33,6 +33,12 @@ reptincel.src = "Poké/reptincel.png"
 
 const chenipan = new Image();
 chenipan.src = "Poké/chenipan.png"
+
+const map2 = new Image();
+map2.src = "Maps/MapGrotte.png"
+
+const map3 = new Image();
+map3.src = "Maps/MapFInale.png"
 
 const toDoubleHexa = (n: number) =>
   n < 16 ? '0' + n.toString(16) : n.toString(16)
@@ -104,26 +110,33 @@ const drawRectangle = (
     ctx.fill()
     
   }
-const drawHerbe = (
-    ctx : CanvasRenderingContext2D, 
-    herbe : Herbe
-    )       => {
-      ctx.beginPath()
-      ctx.rect(herbe.coord.x, herbe.coord.y, 64, 64)
-      ctx.stroke()
-      ctx.fillStyle = COLORS.GREEN
-      
-      ctx.fill()
-      
-    }
 
 const drawMap = (ctx : CanvasRenderingContext2D, state : State) => {
-  ctx.drawImage(map_img,state.map.coord.x,state.map.coord.y)
+  switch(state.zoneactuel){
+    case "Debut" : 
+     ctx.drawImage(map_img,state.map.coord.x,state.map.coord.y)
+      break
+    case "Grotte2":
+      ctx.drawImage(map3,state.map.coord.x,state.map.coord.y)
+      break
+    default :
+      ctx.drawImage(map2,state.map.coord.x,state.map.coord.y)
+  }
 }
 
+
 const drawForeGround = (ctx : CanvasRenderingContext2D, state : State) => {
-  ctx.drawImage(mapforeground_img,state.map.coord.x,state.map.coord.y)
+  switch(state.zoneactuel){
+    case "Debut" : 
+     ctx.drawImage(mapforeground_img,state.map.coord.x,state.map.coord.y)
+      break
+    case "Grotte2":
+      break
+    default : 
+  }
 }
+
+
 
 const drawBlackScreen = (ctx : CanvasRenderingContext2D) => {
   ctx.fillStyle = "black";
@@ -257,6 +270,9 @@ export const render = (ctx: CanvasRenderingContext2D) => (state: State) => {
     drawMap(ctx, state);
     drawPlayer(ctx, state);
     drawForeGround(ctx, state);
+    state.obstacles.forEach((obstacle) => drawRectangle(ctx,obstacle,COLORS.BLUE))
+
+    
   }
 
   if (state.endOfGame) {

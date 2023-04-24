@@ -13,22 +13,31 @@ type HpBar = { max : number, actuel : number}
 type EnemyPokemon = { nom : string, hp : HpBar}
 type Attack = {nom : string, damage : number, type : string}
 type AllyPokemon = { nom : string, hp : HpBar, attack : Attack}
+export type Zones = { coord : Coord, nom : string}
 type Dialogue = { action : string, actif : boolean }
-
 export type Obstacles = {coord : Coord}
+export type Sables = { coord : Coord}
+
+export type Maj = { zones : Array<Zones>, rencontres : Array<Herbe>, hitbox : Array<Obstacles>, sables : Array<Sables>}
+
 
 export type State = {
   map : Carte
+  maj : Array<Maj> 
+  zones : Array<Zones>
+  obstacles : Array<Obstacles>
+  rencontres : Array<Herbe>
+  sables : Array<Sables>
   joueur: Joueur
+  zoneactuel : string
   enemy : EnemyPokemon
   ally : AllyPokemon
   size: Size
-  obstacles : Array<Obstacles>
-  herbes : Array<Herbe>
   battle : boolean
   dialogue : Dialogue
   flashcount : number
   framedialogue : number
+  vitesse : number 
   typeattack : string
   endOfGame: boolean
 
@@ -104,6 +113,10 @@ export const onKeyBoardMove =
             state.map.input = 'd'
             state.joueur.frame = (state.joueur.frame + 1) % 3
             break;
+          case "b": 
+            state.vitesse = conf.MAXMOVE * 2
+            state.joueur.frame = (state.joueur.frame + 1) % 3
+
         }
       }
       return state
@@ -130,6 +143,8 @@ export const onKeyBoardUpUp =
           state.map.right = false
           state.joueur.frame = 0
           break;
+        case "b": 
+          state.vitesse = conf.MAXMOVE
       }
       return state
     }
@@ -141,18 +156,21 @@ const carteIterate = (state: State) => {
   if (state.map.down && state.map.input === 's'){
     collisionDown(state)
     if (state.map.moving){
-      state.map.coord.y -= conf.MAXMOVE
-      state.obstacles.forEach((obstacle) => obstacle.coord.y -= conf.MAXMOVE)
-      state.herbes.forEach((herbe) => herbe.coord.y -= conf.MAXMOVE)
+      state.map.coord.y -= state.vitesse
+      state.obstacles.forEach((obstacle) => obstacle.coord.y -= state.vitesse)
+      state.rencontres.forEach((herbe) => herbe.coord.y -= state.vitesse)
+      state.zones.forEach((zone) => zone.coord.y -= state.vitesse)
+
     }
     
   }
   else if (state.map.right && state.map.input === 'd'){
     collisionRight(state)
     if (state.map.moving){
-      state.map.coord.x -= conf.MAXMOVE
-      state.obstacles.forEach((obstacle) => obstacle.coord.x -= conf.MAXMOVE)
-      state.herbes.forEach((herbe) => herbe.coord.x -= conf.MAXMOVE)
+      state.map.coord.x -= state.vitesse
+      state.obstacles.forEach((obstacle) => obstacle.coord.x -= state.vitesse)
+      state.rencontres.forEach((herbe) => herbe.coord.x -= state.vitesse)
+      state.zones.forEach((zone) => zone.coord.x -= state.vitesse)
 
     }
 
@@ -160,9 +178,11 @@ const carteIterate = (state: State) => {
   else if (state.map.left && state.map.input === 'q'){
     collisionLeft(state)
     if (state.map.moving){
-      state.map.coord.x += conf.MAXMOVE
-      state.obstacles.forEach((obstacle) => obstacle.coord.x += conf.MAXMOVE)
-      state.herbes.forEach((herbe) => herbe.coord.x += conf.MAXMOVE)
+      state.map.coord.x += state.vitesse
+      state.obstacles.forEach((obstacle) => obstacle.coord.x += state.vitesse)
+      state.rencontres.forEach((herbe) => herbe.coord.x += state.vitesse)
+      state.zones.forEach((zone) => zone.coord.x += state.vitesse)
+
 
     }
 
@@ -170,9 +190,11 @@ const carteIterate = (state: State) => {
   else if (state.map.up && state.map.input === 'z'){
     collisionUp(state)
     if (state.map.moving){
-      state.map.coord.y += conf.MAXMOVE
-      state.obstacles.forEach((obstacle) => obstacle.coord.y += conf.MAXMOVE)
-      state.herbes.forEach((herbe) => herbe.coord.y += conf.MAXMOVE)
+      state.map.coord.y += state.vitesse
+      state.obstacles.forEach((obstacle) => obstacle.coord.y += state.vitesse)
+      state.rencontres.forEach((herbe) => herbe.coord.y += state.vitesse)
+      state.zones.forEach((zone) => zone.coord.y += state.vitesse)
+
 
     }
   }
@@ -244,7 +266,7 @@ const getRandomPoke = (state : State) => {
 const rencontrescombat = (state: State) => {
   state.map.moving = true 
   const joueur = state.joueur
-  state.herbes.forEach((herbe) => {
+  state.rencontres.forEach((herbe) => {
     if (joueur.coord.x + 48 >= herbe.coord.x && 
         joueur.coord.x <= herbe.coord.x  + 48 &&
         joueur.coord.y <= herbe.coord.y + 48 && 
@@ -256,6 +278,60 @@ const rencontrescombat = (state: State) => {
               state.joueur.moving = false
             }
           }
+    }
+  })
+}
+
+const maj = (state : State) => {
+  switch(state.zoneactuel){
+    case "Debut" : 
+      state.rencontres = state.maj[0].rencontres
+      state.obstacles = state.maj[0].hitbox
+      state.zones = state.maj[0].zones
+      state.sables = []
+      break 
+    case "Grotte" : 
+      state.rencontres = []
+      state.obstacles = state.maj[1].hitbox
+      state.zones = state.maj[1].zones
+      state.sables = state.maj[1].sables
+      break 
+    case "Grotte2" : 
+      state.rencontres = state.maj[2].rencontres
+      state.obstacles = state.maj[2].hitbox
+      state.zones = state.maj[2].zones
+      state.sables = []
+      break
+  }
+}
+
+const zonechargements = (state: State) => {   
+  const joueur = state.joueur
+  state.zones.forEach((zone) => {
+    if (joueur.coord.x + 48 >= zone.coord.x && 
+      joueur.coord.x <= zone.coord.x  + 48 &&
+      joueur.coord.y <= zone.coord.y + 48 && 
+      joueur.coord.y + 48 >= zone.coord.y){
+        switch (zone.nom) {
+          case "Grotte" : 
+            maj(state)
+            state.map.coord.y = -64
+            state.map.coord.x += 86
+            break
+          case "Grotte2" :
+            maj(state)
+            break
+          case "Grotte2vers1":
+            maj(state)
+            break
+          case "Debut" :
+            state.map.coord.y -= 128
+            state.map.coord.x -= 86 
+            maj(state)
+            break
+        }
+          state.zoneactuel = zone.nom
+
     }
   })
 }
@@ -291,9 +367,10 @@ export const step = (state: State) => {
     ...state
     }
   }
-
   carteIterate(state)
+  zonechargements(state)
   rencontrescombat(state)
+  
   return {
     ...state,
   }

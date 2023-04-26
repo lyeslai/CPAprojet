@@ -6,6 +6,20 @@ const COLORS = {
   BLUE: '#0000ff',
 }
 
+const musiqueRencontrePoke = new Audio();
+musiqueRencontrePoke.src = "Musiques/MusiqueRecontrePoke.mp3"
+
+const musiqueDebut = new Audio();
+musiqueDebut.src = "Musiques/MusiqueDebut.mp3"
+
+const musiqueGrotte1 = new Audio();
+musiqueGrotte1.src = "Musiques/MusiqueGrotte1.mp3"
+
+const musiqueGrotte2 = new Audio();
+musiqueGrotte2.src = "Musiques/MusiqueGrotte2.mp3"
+
+const musiqueRencontreRival = new Audio();
+musiqueRencontreRival.src = "Musiques/MusiqueRencontreRival.mp3"
 
 const playerDown = new Image();
 playerDown.src = "SpritesPlayer/playerDown.png"
@@ -143,6 +157,46 @@ const drawBlackScreen = (ctx : CanvasRenderingContext2D) => {
   ctx.fillRect(0,0,ctx.canvas.width, ctx.canvas.height)
 }
 
+const playMusique = ( state : State) => {
+  switch(state.zoneactuel){
+    case "Debut" :
+      musiqueGrotte2.pause()
+      musiqueGrotte1.pause() 
+     musiqueDebut.loop= true;
+     musiqueDebut.play()
+      break
+    case "Grotte2":
+      musiqueDebut.pause()
+      musiqueGrotte1.pause() 
+      musiqueGrotte2.loop= true;
+     musiqueGrotte2.play()
+      break
+    default :
+    musiqueDebut.pause()
+    musiqueGrotte2.pause() 
+      musiqueGrotte1.loop= true;
+     musiqueGrotte1.play()
+  }
+}
+
+const pauseMusique = ( state : State) => {
+  switch(state.zoneactuel){
+    case "Debut" : 
+     
+     musiqueDebut.pause()
+      break
+    case "Grotte2":
+    
+     musiqueGrotte2.pause()
+      break
+    default :
+     musiqueGrotte1.pause()
+  }
+}
+
+
+
+
 const drawReptincel = (ctx : CanvasRenderingContext2D) => {
   ctx.drawImage(reptincel,300,300,300,300)
 }
@@ -251,6 +305,7 @@ const drawBattle = (ctx : CanvasRenderingContext2D, state : State) => {
 
 export const render = (ctx: CanvasRenderingContext2D) => (state: State) => {
   clear(ctx);
+  playMusique(state);
 
   if (state.battle) {
     state.flashcount++;
@@ -259,12 +314,17 @@ export const render = (ctx: CanvasRenderingContext2D) => (state: State) => {
         drawBlackScreen(ctx);
       }
       else {
+        
         drawMap(ctx, state);
+        
         drawPlayer(ctx, state);
         drawForeGround(ctx, state);
       }  
    }else {
+    pauseMusique(state);
     drawBattle(ctx,state)
+    musiqueRencontrePoke.loop = true;
+    musiqueRencontrePoke.play()
    }
   }else {
     drawMap(ctx, state);

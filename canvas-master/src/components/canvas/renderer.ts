@@ -1,5 +1,5 @@
 /*import * as conf from './conf'*/
-import {Obstacles,State } from './state'
+import {Sables,Obstacles,State } from './state'
 const COLORS = {
   RED: '#ff0000',
   GREEN: '#00ff00',
@@ -20,10 +20,13 @@ const playerRight = new Image();
 playerRight.src = "SpritesPlayer/playerRight.png"
 
 const map_img = new Image();
-map_img.src = "Maps/map1.png"
+map_img.src = "Maps/map.png"
+
+const mapbattle2_img = new Image();
+mapbattle2_img.src = "Maps/battlemapsea.png"
 
 const mapforeground_img = new Image();
-mapforeground_img.src = "Maps/foregroundmap1.png"
+mapforeground_img.src = "Maps/foregroundmap.png"
 
 const mapbattle_img = new Image();
 mapbattle_img.src = "Maps/battlemap.png"
@@ -33,6 +36,9 @@ reptincel.src = "Poké/reptincel.png"
 
 const chenipan = new Image();
 chenipan.src = "Poké/chenipan.png"
+
+const elekable = new Image();
+elekable.src = "Poké/elekable.png"
 
 const toDoubleHexa = (n: number) =>
   n < 16 ? '0' + n.toString(16) : n.toString(16)
@@ -93,7 +99,7 @@ const drawPlayer = (
 
 const drawRectangle = (
   ctx : CanvasRenderingContext2D, 
-  obstacle : Obstacles,
+  obstacle : Sables,
   color : string
   )       => {
     ctx.beginPath()
@@ -125,6 +131,21 @@ const drawReptincel = (ctx : CanvasRenderingContext2D) => {
 
 const drawChenipan = (ctx : CanvasRenderingContext2D) => {
   ctx.drawImage(chenipan, 780,150,300,300)
+}
+
+const drawElekable = (ctx : CanvasRenderingContext2D) => {
+  ctx.drawImage(elekable,780,150,300,300)
+}
+
+const drawEnemy = (ctx : CanvasRenderingContext2D, state : State) => {
+  switch(state.enemy.nom){
+    case "Elekable" : 
+      drawElekable(ctx)
+      break
+    case "Chenipan" : 
+      drawChenipan(ctx)
+      break
+  }
 }
 
 const drawBarInterface = (ctx : CanvasRenderingContext2D, state : State) => {
@@ -161,11 +182,17 @@ const drawHpInterface = (ctx : CanvasRenderingContext2D, state : State) => {
   ctx.fillRect(80,20, 400, 100)
   ctx.fillRect(900,450, 400, 100)
 
+  ctx.fillStyle = "black"
+  ctx.strokeRect(100,60,320,20)
+  ctx.strokeRect(920,490,320,20)
+
   ctx.fillStyle = "green" 
   if (state.enemy.hp.actuel > 0) {
     ctx.fillRect(100,60, (state.enemy.hp.actuel * 320) / state.enemy.hp.max, 20)
   }
-  ctx.fillRect(920,490,(state.ally.hp.actuel * 320) / state.ally.hp.max,20)
+  if(state.ally.hp.actuel > 0) {
+    ctx.fillRect(920,490,(state.ally.hp.actuel * 320) / state.ally.hp.max,20)
+  }
 
   ctx.fillStyle = "black"
   ctx.strokeRect(80,20, 400, 100)
@@ -186,9 +213,17 @@ const drawDialogue = (ctx : CanvasRenderingContext2D, state: State) => {
   ctx.font = "50px arial";
 
   switch (state.dialogue.action){
+    case "Debut" : 
+      ctx.fillText("Vous avez rencontré un " + state.enemy.nom + " sauvage.", 20,630)
+      if (state.framedialogue > 70){
+        state.framedialogue = 0 
+        state.dialogue.action = "FinDebut"
+      }
+      state.framedialogue++
+      break
     case "Ally" : 
       ctx.fillText(state.ally.nom + " a utilise l'attaque " + state.ally.attack.nom, 20,630)
-      if (state.framedialogue > 50){
+      if (state.framedialogue > 70){
         state.framedialogue = 0 
         state.dialogue.action = "EndAlly"
       }
@@ -196,7 +231,7 @@ const drawDialogue = (ctx : CanvasRenderingContext2D, state: State) => {
       break
     case "Enemy" : 
       ctx.fillText(state.enemy.nom + " utilise l'attaque Charge", 20,630)
-      if(state.framedialogue > 50){
+      if(state.framedialogue > 70){
         state.framedialogue = 0 
         state.dialogue.action = "EndEnemy"
       }
@@ -204,25 +239,53 @@ const drawDialogue = (ctx : CanvasRenderingContext2D, state: State) => {
       break;
     case "Victoire" : 
       ctx.fillText(state.enemy.nom + " est k.o", 20,630)
-      if(state.framedialogue > 50){
+      if(state.framedialogue > 70){
         state.dialogue.action = "End"
       }
       state.framedialogue++
+      break
+    case "End" : 
+      state.dialogue.action = "Debut"
       break
   }
 
 }
 
 const drawBattle = (ctx : CanvasRenderingContext2D, state : State) => {
-  ctx.drawImage(mapbattle_img,0,0,ctx.canvas.width,ctx.canvas.height/*2/3*/)
+  switch(state.zoneactuel){
+    case "Plaine" :
+      ctx.drawImage(mapbattle_img,0,0,ctx.canvas.width,ctx.canvas.height/*2/3*/)
+      break
+    case "Plage" : 
+      ctx.drawImage(mapbattle2_img,0,0,ctx.canvas.width,ctx.canvas.height/*2/3*/)
+      break
+
+
+  }
   drawReptincel(ctx)
-  drawChenipan(ctx)
+  drawEnemy(ctx,state)
   if (state.dialogue.actif){
     drawDialogue(ctx,state)
   }else{
     drawBarInterface(ctx,state)
   }
   drawHpInterface(ctx,state)
+}
+
+const drawAffichageMap = (ctx : CanvasRenderingContext2D, state : State) => {
+  if (state.framechangemap < 90) {
+    ctx.fillRect(0,0,200,50)
+    ctx.fillStyle = 'black'
+    ctx.strokeRect(0,0,200,50)
+    ctx.font = "30px arial";
+
+    ctx.fillText(state.zoneactuel,60,35)
+    state.framechangemap++
+  }else{
+    state.framechangemap = 0 
+    state.changemap = false
+  }
+  
 }
 
 export const render = (ctx: CanvasRenderingContext2D) => (state: State) => {
@@ -246,8 +309,13 @@ export const render = (ctx: CanvasRenderingContext2D) => (state: State) => {
     drawMap(ctx, state);
     drawPlayer(ctx, state);
     drawForeGround(ctx, state);
-    state.obstacles.forEach((obstacle) => drawRectangle(ctx,obstacle,COLORS.BLUE))    
+    if (state.changemap){
+      drawAffichageMap(ctx,state)
+    }
   }
+
+  //state.sables.forEach((obstacle) => drawRectangle(ctx,obstacle,COLORS.BLUE))    
+
   if (state.endOfGame) {
     const text = "END";
     ctx.font = "48px arial";

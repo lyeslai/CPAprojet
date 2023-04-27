@@ -18,6 +18,9 @@ type Dialogue = { action : string, actif : boolean }
 export type Obstacles = {coord : Coord}
 export type Sables = { coord : Coord}
 
+
+const randint = (max : number) => Math.floor(Math.random() * max)
+
 export type State = {
   map : Carte
   zones : Array<Zones>
@@ -34,6 +37,7 @@ export type State = {
   flashcount : number
   framedialogue : number
   changemap : boolean
+  framechangemap : number
   vitesse : number 
   typeattack : string
   endOfGame: boolean
@@ -146,53 +150,64 @@ export const onKeyBoardUpUp =
       return state
     }
 
-  
+const deplacementGauche = (state : State, vitesse : number) => {
+  state.map.coord.x += vitesse
+  state.obstacles.forEach((obstacle) => obstacle.coord.x += vitesse)
+  state.rencontres.forEach((herbe) => herbe.coord.x += vitesse)
+  state.zones.forEach((zone) => zone.coord.x += vitesse)
+  state.sables.forEach((sable) => sable.coord.x += vitesse)
+}
+
+const deplacementDroit = (state : State, vitesse : number) => {
+  state.map.coord.x -= vitesse
+  state.obstacles.forEach((obstacle) => obstacle.coord.x -= vitesse)
+  state.rencontres.forEach((herbe) => herbe.coord.x -= vitesse)
+  state.zones.forEach((zone) => zone.coord.x -= vitesse)
+  state.sables.forEach((sable) => sable.coord.x -= vitesse)
+}
+
+const deplacementHaut = (state : State, vitesse : number) => {
+  state.map.coord.y += vitesse
+  state.obstacles.forEach((obstacle) => obstacle.coord.y += vitesse)
+  state.rencontres.forEach((herbe) => herbe.coord.y += vitesse)
+  state.zones.forEach((zone) => zone.coord.y += vitesse)
+  state.sables.forEach((sable) => sable.coord.y += vitesse)
+}
+
+const deplacementBas = (state : State, vitesse : number) => {
+  state.map.coord.y -= vitesse
+  state.obstacles.forEach((obstacle) => obstacle.coord.y -= vitesse)
+  state.rencontres.forEach((herbe) => herbe.coord.y -= vitesse)
+  state.zones.forEach((zone) => zone.coord.y -= vitesse)
+  state.sables.forEach((sable) => sable.coord.y -= vitesse)
+}
+
 
 const carteIterate = (state: State) => {
 
   if (state.map.down && state.map.input === 's'){
     collisionDown(state)
     if (state.map.moving){
-      state.map.coord.y -= state.vitesse
-      state.obstacles.forEach((obstacle) => obstacle.coord.y -= state.vitesse)
-      state.rencontres.forEach((herbe) => herbe.coord.y -= state.vitesse)
-      state.zones.forEach((zone) => zone.coord.y -= state.vitesse)
-
+      deplacementBas(state,state.vitesse)
     }
     
   }
   else if (state.map.right && state.map.input === 'd'){
     collisionRight(state)
     if (state.map.moving){
-      state.map.coord.x -= state.vitesse
-      state.obstacles.forEach((obstacle) => obstacle.coord.x -= state.vitesse)
-      state.rencontres.forEach((herbe) => herbe.coord.x -= state.vitesse)
-      state.zones.forEach((zone) => zone.coord.x -= state.vitesse)
-
+      deplacementDroit(state,state.vitesse)
     }
-
   }
   else if (state.map.left && state.map.input === 'q'){
     collisionLeft(state)
     if (state.map.moving){
-      state.map.coord.x += state.vitesse
-      state.obstacles.forEach((obstacle) => obstacle.coord.x += state.vitesse)
-      state.rencontres.forEach((herbe) => herbe.coord.x += state.vitesse)
-      state.zones.forEach((zone) => zone.coord.x += state.vitesse)
-
-
+      deplacementGauche(state,state.vitesse)
     }
-
   }
   else if (state.map.up && state.map.input === 'z'){
     collisionUp(state)
     if (state.map.moving){
-      state.map.coord.y += state.vitesse
-      state.obstacles.forEach((obstacle) => obstacle.coord.y += state.vitesse)
-      state.rencontres.forEach((herbe) => herbe.coord.y += state.vitesse)
-      state.zones.forEach((zone) => zone.coord.y += state.vitesse)
-
-
+      deplacementHaut(state,state.vitesse)
     }
   }
 }
@@ -250,9 +265,9 @@ const collisionUp = (state: State) => {
 const getRandomPoke = (state : State) => {
   const r = Math.random() 
   if ( r > 0.5) {
-    state.enemy.hp.max = 15 
-    state.enemy.hp.actuel = 15 
-    state.enemy.nom = "Chenipan XL"
+    state.enemy.hp.max = 12 
+    state.enemy.hp.actuel = 12
+    state.enemy.nom = "Elekable"
   }else{
     state.enemy.hp.max = 12 
     state.enemy.hp.actuel = 12 
@@ -272,10 +287,23 @@ const rencontrescombat = (state: State) => {
             if (Math.random() < 0.005){
               getRandomPoke(state)
               state.battle = true 
+              state.dialogue = { actif : true, action : "Debut"}
               state.joueur.moving = false
             }
           }
     }
+  })
+}
+
+const zonesables = (state : State) => {
+  const joueur = state.joueur 
+  state.sables.forEach((sable) => {
+    if (joueur.coord.x + 48 >= sable.coord.x && 
+      joueur.coord.x <= sable.coord.x  + 48 &&
+      joueur.coord.y <= sable.coord.y + 48 && 
+      joueur.coord.y + 48 >= sable.coord.y){
+        deplacementBas(state,1 * 3/4)
+        }
   })
 }
 
@@ -286,8 +314,24 @@ const zonechargements = (state: State) => {
       joueur.coord.x <= zone.coord.x  + 48 &&
       joueur.coord.y <= zone.coord.y + 48 && 
       joueur.coord.y + 48 >= zone.coord.y){
-        state.zoneactuel = zone.nom
-        state.changemap = true 
+        switch(state.zoneactuel) {
+          case "Plage" :
+            if (zone.nom !== "Plage"){
+              state.zoneactuel = "Plaine"
+              state.framechangemap = 0
+              state.changemap = true
+            }
+            break
+          case "Plaine" :
+            if (zone.nom !== "Plaine"){
+              state.zoneactuel = "Plage"
+              state.framechangemap = 0
+              state.changemap = true
+              
+
+            }
+            break
+        }
     }
   })
 }
@@ -311,13 +355,14 @@ const combatIterate = (state: State) => {
       state.ally.hp.actuel -= 1
       state.dialogue.actif = false 
     }
+    if(state.dialogue.action === "FinDebut"){
+      state.dialogue.actif = false
+    }
    
   }
 }
 
 export const step = (state: State) => {
-
-
 
   if (state.battle){
     combatIterate(state)
@@ -326,6 +371,7 @@ export const step = (state: State) => {
     }
   }
   carteIterate(state)
+  zonesables(state)
   zonechargements(state)
   rencontrescombat(state)
   

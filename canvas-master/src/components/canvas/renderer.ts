@@ -34,12 +34,6 @@ reptincel.src = "Poké/reptincel.png"
 const chenipan = new Image();
 chenipan.src = "Poké/chenipan.png"
 
-const map2 = new Image();
-map2.src = "Maps/MapGrotte.png"
-
-const map3 = new Image();
-map3.src = "Maps/MapFInale.png"
-
 const toDoubleHexa = (n: number) =>
   n < 16 ? '0' + n.toString(16) : n.toString(16)
 
@@ -112,31 +106,13 @@ const drawRectangle = (
   }
 
 const drawMap = (ctx : CanvasRenderingContext2D, state : State) => {
-  switch(state.zoneactuel){
-    case "Debut" : 
-     ctx.drawImage(map_img,state.map.coord.x,state.map.coord.y)
-      break
-    case "Grotte2":
-      ctx.drawImage(map3,state.map.coord.x,state.map.coord.y)
-      break
-    default :
-      ctx.drawImage(map2,state.map.coord.x,state.map.coord.y)
-  }
+  ctx.drawImage(map_img,state.map.coord.x,state.map.coord.y)
 }
 
 
 const drawForeGround = (ctx : CanvasRenderingContext2D, state : State) => {
-  switch(state.zoneactuel){
-    case "Debut" : 
-     ctx.drawImage(mapforeground_img,state.map.coord.x,state.map.coord.y)
-      break
-    case "Grotte2":
-      break
-    default : 
-  }
+  ctx.drawImage(mapforeground_img,state.map.coord.x,state.map.coord.y)  
 }
-
-
 
 const drawBlackScreen = (ctx : CanvasRenderingContext2D) => {
   ctx.fillStyle = "black";
@@ -270,11 +246,8 @@ export const render = (ctx: CanvasRenderingContext2D) => (state: State) => {
     drawMap(ctx, state);
     drawPlayer(ctx, state);
     drawForeGround(ctx, state);
-    state.obstacles.forEach((obstacle) => drawRectangle(ctx,obstacle,COLORS.BLUE))
-
-    
+    state.obstacles.forEach((obstacle) => drawRectangle(ctx,obstacle,COLORS.BLUE))    
   }
-
   if (state.endOfGame) {
     const text = "END";
     ctx.font = "48px arial";

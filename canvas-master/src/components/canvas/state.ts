@@ -18,12 +18,8 @@ type Dialogue = { action : string, actif : boolean }
 export type Obstacles = {coord : Coord}
 export type Sables = { coord : Coord}
 
-export type Maj = { zones : Array<Zones>, rencontres : Array<Herbe>, hitbox : Array<Obstacles>, sables : Array<Sables>}
-
-
 export type State = {
   map : Carte
-  maj : Array<Maj> 
   zones : Array<Zones>
   obstacles : Array<Obstacles>
   rencontres : Array<Herbe>
@@ -37,6 +33,7 @@ export type State = {
   dialogue : Dialogue
   flashcount : number
   framedialogue : number
+  changemap : boolean
   vitesse : number 
   typeattack : string
   endOfGame: boolean
@@ -282,29 +279,6 @@ const rencontrescombat = (state: State) => {
   })
 }
 
-const maj = (state : State) => {
-  switch(state.zoneactuel){
-    case "Debut" : 
-      state.rencontres = state.maj[0].rencontres
-      state.obstacles = state.maj[0].hitbox
-      state.zones = state.maj[0].zones
-      state.sables = []
-      break 
-    case "Grotte" : 
-      state.rencontres = []
-      state.obstacles = state.maj[1].hitbox
-      state.zones = state.maj[1].zones
-      state.sables = state.maj[1].sables
-      break 
-    case "Grotte2" : 
-      state.rencontres = state.maj[2].rencontres
-      state.obstacles = state.maj[2].hitbox
-      state.zones = state.maj[2].zones
-      state.sables = []
-      break
-  }
-}
-
 const zonechargements = (state: State) => {   
   const joueur = state.joueur
   state.zones.forEach((zone) => {
@@ -312,26 +286,8 @@ const zonechargements = (state: State) => {
       joueur.coord.x <= zone.coord.x  + 48 &&
       joueur.coord.y <= zone.coord.y + 48 && 
       joueur.coord.y + 48 >= zone.coord.y){
-        switch (zone.nom) {
-          case "Grotte" : 
-            maj(state)
-            state.map.coord.y = -64
-            state.map.coord.x += 86
-            break
-          case "Grotte2" :
-            maj(state)
-            break
-          case "Grotte2vers1":
-            maj(state)
-            break
-          case "Debut" :
-            state.map.coord.y -= 128
-            state.map.coord.x -= 86 
-            maj(state)
-            break
-        }
-          state.zoneactuel = zone.nom
-
+        state.zoneactuel = zone.nom
+        state.changemap = true 
     }
   })
 }
@@ -360,6 +316,8 @@ const combatIterate = (state: State) => {
 }
 
 export const step = (state: State) => {
+
+
 
   if (state.battle){
     combatIterate(state)

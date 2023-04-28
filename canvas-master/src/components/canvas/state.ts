@@ -1,10 +1,10 @@
 import { KeyboardEvent } from 'react';
 import * as conf from './conf'
 export type Coord = { x: number; y: number; dx: number; dy: number }
-/*type Ball = { coord: Coord; life: number; invincible?: number }*/
 
 /* Joueur */
 type Joueur = { coord: Coord , frame : number , moving : boolean}
+type Dresseur = { coord : Coord, direction : number, pokemon : AllyPokemon}
 type Size = { height: number; width: number }
 type Bordure = { coordupleft: Coord; size: Size }
 type Carte = { coord : Coord, up : boolean, down : boolean, right : boolean, left : boolean, input : string, moving : boolean}
@@ -17,6 +17,7 @@ export type Zones = { coord : Coord, nom : string}
 type Dialogue = { action : string, actif : boolean }
 export type Obstacles = {coord : Coord}
 export type Sables = { coord : Coord}
+export type Interaction = {coord : Coord, nom : string}
 
 
 const randint = (max : number) => Math.floor(Math.random() * max)
@@ -25,22 +26,27 @@ export type State = {
   map : Carte
   zones : Array<Zones>
   obstacles : Array<Obstacles>
+  interactions : Array<Interaction>
   rencontres : Array<Herbe>
   sables : Array<Sables>
   joueur: Joueur
   zoneactuel : string
   enemy : EnemyPokemon
   ally : AllyPokemon
+  dresseur : Dresseur
   size: Size
+  combat : boolean
   battle : boolean
   dialogue : Dialogue
   flashcount : number
   framedialogue : number
   changemap : boolean
+  talking : boolean
   framechangemap : number
   vitesse : number 
   typeattack : string
   endOfGame: boolean
+  musique : boolean
 
 }
 
@@ -114,6 +120,14 @@ export const onKeyBoardMove =
             state.map.input = 'd'
             state.joueur.frame = (state.joueur.frame + 1) % 3
             break;
+          case "e": 
+            if (state.talking){
+              getPokemonDresseur(state)
+              state.battle = true 
+              state.dialogue = { actif : true, action : "DebutDresseur"}
+              state.joueur.moving = false
+            }
+            break
           case "b": 
             state.vitesse = conf.MAXMOVE * 2
             state.joueur.frame = (state.joueur.frame + 1) % 3
@@ -146,6 +160,10 @@ export const onKeyBoardUpUp =
           break;
         case "b": 
           state.vitesse = conf.MAXMOVE
+          break
+        case "e": 
+
+          break
       }
       return state
     }
@@ -156,6 +174,8 @@ const deplacementGauche = (state : State, vitesse : number) => {
   state.rencontres.forEach((herbe) => herbe.coord.x += vitesse)
   state.zones.forEach((zone) => zone.coord.x += vitesse)
   state.sables.forEach((sable) => sable.coord.x += vitesse)
+  state.interactions.forEach((interaction) => interaction.coord.x += vitesse)
+  state.dresseur.coord.x += vitesse
 }
 
 const deplacementDroit = (state : State, vitesse : number) => {
@@ -164,6 +184,8 @@ const deplacementDroit = (state : State, vitesse : number) => {
   state.rencontres.forEach((herbe) => herbe.coord.x -= vitesse)
   state.zones.forEach((zone) => zone.coord.x -= vitesse)
   state.sables.forEach((sable) => sable.coord.x -= vitesse)
+  state.interactions.forEach((interaction) => interaction.coord.x -= vitesse)
+  state.dresseur.coord.x -= vitesse
 }
 
 const deplacementHaut = (state : State, vitesse : number) => {
@@ -172,6 +194,8 @@ const deplacementHaut = (state : State, vitesse : number) => {
   state.rencontres.forEach((herbe) => herbe.coord.y += vitesse)
   state.zones.forEach((zone) => zone.coord.y += vitesse)
   state.sables.forEach((sable) => sable.coord.y += vitesse)
+  state.interactions.forEach((interaction) => interaction.coord.y += vitesse)
+  state.dresseur.coord.y += vitesse
 }
 
 const deplacementBas = (state : State, vitesse : number) => {
@@ -180,8 +204,9 @@ const deplacementBas = (state : State, vitesse : number) => {
   state.rencontres.forEach((herbe) => herbe.coord.y -= vitesse)
   state.zones.forEach((zone) => zone.coord.y -= vitesse)
   state.sables.forEach((sable) => sable.coord.y -= vitesse)
+  state.interactions.forEach((interaction) => interaction.coord.y -= vitesse)
+  state.dresseur.coord.y -= vitesse
 }
-
 
 const carteIterate = (state: State) => {
 
@@ -275,6 +300,13 @@ const getRandomPoke = (state : State) => {
   }
 }
 
+const getPokemonDresseur = (state : State) => {
+    state.enemy.hp.max = state.dresseur.pokemon.hp.max 
+    state.enemy.hp.actuel = state.dresseur.pokemon.hp.actuel
+    state.enemy.nom = state.dresseur.pokemon.nom
+}
+
+
 const rencontrescombat = (state: State) => {
   state.map.moving = true 
   const joueur = state.joueur
@@ -305,6 +337,19 @@ const zonesables = (state : State) => {
         deplacementBas(state,1 * 3/4)
         }
   })
+}
+
+const interaction = (state : State) => {
+  const joueur = state.joueur 
+  state.interactions.forEach((interaction) => {
+    if (joueur.coord.x + 48 >= interaction.coord.x && 
+      joueur.coord.x <= interaction.coord.x  + 48 &&
+      joueur.coord.y <= interaction.coord.y + 48 && 
+      joueur.coord.y + 48 >= interaction.coord.y){
+          state.talking = true 
+        }
+  })
+  
 }
 
 const zonechargements = (state: State) => {   
@@ -339,11 +384,19 @@ const zonechargements = (state: State) => {
 const combatIterate = (state: State) => {
   if(state.dialogue.actif){
     if (state.dialogue.action === "End"){
-      state.battle = false 
-      state.joueur.moving = true 
-      state.flashcount = 0 
-      state.dialogue.actif = false 
+      if (state.talking){
+        state.endOfGame = true 
+        state.flashcount = 0 
+        state.talking = false
+        state.battle = false
+      }else{
+        state.battle = false 
+        state.joueur.moving = true 
+        state.flashcount = 0 
+        state.dialogue.actif = false 
+      }
     }
+   
     if(state.dialogue.action === "EndAlly"){
       state.enemy.hp.actuel -= state.ally.attack.damage
       state.dialogue.action = "Enemy"
@@ -362,6 +415,7 @@ const combatIterate = (state: State) => {
   }
 }
 
+
 export const step = (state: State) => {
 
   if (state.battle){
@@ -374,7 +428,7 @@ export const step = (state: State) => {
   zonesables(state)
   zonechargements(state)
   rencontrescombat(state)
-  
+  interaction(state)
   return {
     ...state,
   }

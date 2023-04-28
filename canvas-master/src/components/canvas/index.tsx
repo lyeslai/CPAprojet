@@ -1,7 +1,7 @@
 import * as conf from './conf'
 import { useRef, useEffect} from 'react'
-import { Sables, Zones, Herbe,Obstacles, State, step, mouseMove, onKeyBoardMove, onKeyBoardUpUp ,mouseClick, endOfGame} from './state'
-import { render } from './renderer'
+import { Coord, Interaction, Sables, Zones, Herbe,Obstacles, State, step, mouseMove, onKeyBoardMove, onKeyBoardUpUp ,mouseClick, endOfGame} from './state'
+import { musiqueV, render } from './renderer'
 
 
 const MapZonesSable : Array<Array<number>> = []
@@ -100,7 +100,37 @@ MapSable.forEach((row,i) => {
   }
   )
 })
-console.log(sablesReel)
+
+const MapInteraction : Array<Array<number>> = []
+for (let i = 0 ; i < conf.INTERACTION.length ; i += 70){
+  MapInteraction.push(conf.INTERACTION.slice(i,i+70))
+}
+
+const interactionReel : Array<Interaction> = []
+var coordDresseur : Coord 
+
+MapInteraction.forEach((row,i) => {
+  row.forEach((symbol,j) => {
+    switch (symbol){
+      case 2504 : 
+        interactionReel.push(
+        {coord : 
+        { x : (j * 64) - 1000, y : (i * 64) - 1000, dx : 0 , dy : 0},
+          nom : "Dresseur",
+        })
+        break
+      case 2505 : 
+        coordDresseur = { x : (j * 64) - 1000, y : (i * 64) - 1000, dx : 0 , dy : 0}
+        obstaclesReel.push(
+          {coord : 
+            { x : (j * 64) - 1000, y : (i * 64) - 1000, dx : 0 , dy : 0}
+          }
+        )
+        break
+    }
+  }
+  )
+})
 
 const initCanvas =
   (iterate: (ctx: CanvasRenderingContext2D) => void) =>
@@ -156,6 +186,15 @@ const Canvas = ({ height, width }: { height: number; width: number }) => {
         damage : 0,
       }
     },
+    dresseur : {
+      coord : coordDresseur,
+      direction : 1, 
+      pokemon : {
+        hp : { max : 15, actuel : 15},
+        nom : "Dracaufeu",
+        attack : {nom : "", type : "", damage : 0},
+      }
+    },
     dialogue : {
       actif : false, 
       action : "",
@@ -164,6 +203,7 @@ const Canvas = ({ height, width }: { height: number; width: number }) => {
     size: { width : 1024 , height : 576 },
     obstacles : obstaclesReel,
     rencontres : rencontresReel,
+    interactions : interactionReel,
     sables : sablesReel,
     battle : false,
     typeattack : "",
@@ -171,18 +211,21 @@ const Canvas = ({ height, width }: { height: number; width: number }) => {
     framechangemap: 0,
     zones : zonechargement,
     changemap : false,
+    talking : false,
     zoneactuel : "Plaine",
+    combat : false,
     vitesse : conf.MAXMOVE,
-    endOfGame: true
+    endOfGame: false,
+    musique : true
   }
 
  
   const ref = useRef<any>()
   const state = useRef<State>(initialState)
 
+
   const iterate = (ctx: CanvasRenderingContext2D) => {
     state.current = step(state.current) 
-    state.current.endOfGame = !endOfGame(state.current)
     render(ctx)(state.current)
     if (!state.current.endOfGame) requestAnimationFrame(() => iterate(ctx))
   }

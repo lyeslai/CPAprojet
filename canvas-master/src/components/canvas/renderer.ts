@@ -12,7 +12,6 @@ victoirePoke.src = "Musiques/victoirePoke.mp3"
 const musiqueVille = new Audio();
 musiqueVille.src = "Musiques/musiqueVille.mp3"
 
-
 const rencontrePoke = new Audio();
 rencontrePoke.src = "Musiques/rencontrePoke.mp3"
 
@@ -48,6 +47,15 @@ chenipan.src = "Poké/chenipan.png"
 
 const elekable = new Image();
 elekable.src = "Poké/elekable.png"
+
+const dracaufeu = new Image();
+dracaufeu.src = "Poké/dracaufeu.png"
+
+const dresseur = new Image();
+dresseur.src = "SpritesPlayer/Dresseur.png"
+
+const champion = new Image();
+champion.src = "SpritesPlayer/CHAMPION.png"
 
 const toDoubleHexa = (n: number) =>
   n < 16 ? '0' + n.toString(16) : n.toString(16)
@@ -106,6 +114,13 @@ const drawPlayer = (
  
 }
 
+const drawDresseur = (
+  ctx : CanvasRenderingContext2D,
+  state : State
+) => {
+  ctx.drawImage(dresseur,state.dresseur.direction * dresseur.width/ 4 , 0, dresseur.width / 4, dresseur.height, state.dresseur.coord.x, state.dresseur.coord.y,dresseur.width/4 * 4, 16 * 4)
+}
+
 const drawRectangle = (
   ctx : CanvasRenderingContext2D, 
   obstacle : Sables,
@@ -147,6 +162,10 @@ const drawElekable = (ctx : CanvasRenderingContext2D) => {
   ctx.drawImage(elekable,780,150,300,300)
 }
 
+const drawDracaufeu = (ctx : CanvasRenderingContext2D) => {
+  ctx.drawImage(dracaufeu,850,100,300,300)
+}
+
 const drawEnemy = (ctx : CanvasRenderingContext2D, state : State) => {
   switch(state.enemy.nom){
     case "Elekable" : 
@@ -154,6 +173,9 @@ const drawEnemy = (ctx : CanvasRenderingContext2D, state : State) => {
       break
     case "Chenipan" : 
       drawChenipan(ctx)
+      break
+    case "Dracaufeu" : 
+      drawDracaufeu(ctx)
       break
   }
 }
@@ -217,30 +239,28 @@ const drawHpInterface = (ctx : CanvasRenderingContext2D, state : State) => {
 }
 
 
-const musiqueV = () => {
-  rencontrePoke.pause();
-  victoirePoke.pause();
-  
+export const musiqueV = () => {
   musiqueVille.play();
-  
 }
+
+
 const musiqueCombat = (state : State) => {
   switch(state.dialogue.action) {
     case "Debut" :
       musiqueVille.pause();
-      victoirePoke.pause();
       rencontrePoke.play();
-      
     break
     case "Victoire" : 
-    
-    musiqueVille.pause();
-    rencontrePoke.pause();
-    victoirePoke.play()
-    break
+      rencontrePoke.pause();
+      victoirePoke.play()
+      break
     case "End" :
-    victoirePoke.pause();
-     rencontrePoke.pause();
+      victoirePoke.pause();
+      musiqueVille.play()
+      break
+    case "EndGame" :
+      victoirePoke.pause(); 
+     break
   }
 }
 
@@ -251,6 +271,22 @@ const drawDialogue = (ctx : CanvasRenderingContext2D, state: State) => {
   ctx.font = "50px arial";
 
   switch (state.dialogue.action){
+    case "DebutDresseur":
+      ctx.fillText("Binh Minh Bui Xuan vous propose un combat", 20, 630)
+      if (state.framedialogue > 70){
+        state.framedialogue = 0 
+        state.dialogue.action = "EnvoiePoke"
+      }
+      state.framedialogue ++
+      break
+    case "EnvoiePoke": 
+      ctx.fillText("Binh Minh Bui Xuan envoie son " + state.enemy.nom + " shiny ????", 20,630)
+      if (state.framedialogue > 70){
+        state.framedialogue = 0 
+        state.dialogue.action = "FinDebut"
+      }
+      state.framedialogue++
+      break
     case "Debut" : 
       ctx.fillText("Vous avez rencontré un " + state.enemy.nom + " sauvage.", 20,630)
       if (state.framedialogue > 70){
@@ -277,15 +313,16 @@ const drawDialogue = (ctx : CanvasRenderingContext2D, state: State) => {
       break;
     case "Victoire" : 
       ctx.fillText(state.enemy.nom + " est k.o", 20,630)
-      if(state.framedialogue > 400){
+      if(state.framedialogue > 140){
+        state.framedialogue = 0 
         state.dialogue.action = "End"
-      }
+        }
       state.framedialogue++
       break
     case "End" : 
       state.dialogue.action = "Debut"
       break
-  }
+    }
 
 }
 
@@ -301,7 +338,10 @@ const drawBattle = (ctx : CanvasRenderingContext2D, state : State) => {
 
   }
   drawReptincel(ctx)
-  drawEnemy(ctx,state)
+  if (state.dialogue.action == "DebutDresseur"){
+      ctx.drawImage(champion,850,100,300,300)
+  }else{drawEnemy(ctx,state)}
+  
   if (state.dialogue.actif){
     drawDialogue(ctx,state)
   }else{
@@ -330,42 +370,44 @@ const drawAffichageMap = (ctx : CanvasRenderingContext2D, state : State) => {
 
 export const render = (ctx: CanvasRenderingContext2D) => (state: State) => {
   clear(ctx);
-  
-  if (state.battle) {
-    state.flashcount++;
-    if (state.flashcount < 30){
-      if (state.flashcount % 10 < 5) {
-        drawBlackScreen(ctx);
-      }
-      else {
-        
-        drawMap(ctx, state);
-        drawPlayer(ctx, state);
-        drawForeGround(ctx, state);
-        
-      }  
-   }else {
-    musiqueCombat(state)
-    drawBattle(ctx,state)
-   }
-  }else {
-    musiqueV()
-    drawMap(ctx, state);
-    drawPlayer(ctx, state);
-    drawForeGround(ctx, state);
-    if (state.changemap){
-      drawAffichageMap(ctx,state)
+  if (state.endOfGame){
+    drawBlackScreen(ctx)
+    ctx.fillStyle = "white"
+    ctx.font = "80px arial" 
+    ctx.fillText("Merci d'avoir joué", 400,100)
+    ctx.fillText("Farouck Cherfi & Lyes Laïmouche",100,300)
+  }else{
+    if (state.battle) {
+      state.flashcount++;
+      if (state.flashcount < 30){
+        if (state.flashcount % 10 < 5) {
+          drawBlackScreen(ctx);
+        }
+        else {
+          drawMap(ctx, state);
+          drawPlayer(ctx, state);
+          drawDresseur(ctx,state)
+          drawForeGround(ctx, state);
+          
+        }  
+    }else {
+      //musiqueCombat(state)
+      drawBattle(ctx,state)
     }
+    }else {
+      if(state.musique){
+        //musiqueV();
+        state.musique = false
+      }
+      drawMap(ctx, state);
+      drawPlayer(ctx, state);
+      drawDresseur(ctx,state)
+      drawForeGround(ctx, state);
+      if (state.changemap){
+        drawAffichageMap(ctx,state)
+      }
+    }  
   }
-
-  //state.sables.forEach((obstacle) => drawRectangle(ctx,obstacle,COLORS.BLUE))    
-
-  if (state.endOfGame) {
-    const text = "END";
-    ctx.font = "48px arial";
-    ctx.strokeText(text, state.size.width / 2 - 200, state.size.height / 2);
-  }
-
   
 };
 

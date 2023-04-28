@@ -6,6 +6,15 @@ const COLORS = {
   BLUE: '#0000ff',
 }
 
+const victoirePoke = new Audio();
+victoirePoke.src = "Musiques/victoirePoke.mp3"
+
+const musiqueVille = new Audio();
+musiqueVille.src = "Musiques/musiqueVille.mp3"
+
+
+const rencontrePoke = new Audio();
+rencontrePoke.src = "Musiques/rencontrePoke.mp3"
 
 const playerDown = new Image();
 playerDown.src = "SpritesPlayer/playerDown.png"
@@ -125,6 +134,7 @@ const drawBlackScreen = (ctx : CanvasRenderingContext2D) => {
   ctx.fillRect(0,0,ctx.canvas.width, ctx.canvas.height)
 }
 
+
 const drawReptincel = (ctx : CanvasRenderingContext2D) => {
   ctx.drawImage(reptincel,300,300,300,300)
 }
@@ -206,6 +216,34 @@ const drawHpInterface = (ctx : CanvasRenderingContext2D, state : State) => {
   ctx.fillText("/" + state.ally.hp.max.toString(),1250,540)
 }
 
+
+const musiqueV = () => {
+  rencontrePoke.pause();
+  victoirePoke.pause();
+  
+  musiqueVille.play();
+  
+}
+const musiqueCombat = (state : State) => {
+  switch(state.dialogue.action) {
+    case "Debut" :
+      musiqueVille.pause();
+      victoirePoke.pause();
+      rencontrePoke.play();
+      
+    break
+    case "Victoire" : 
+    
+    musiqueVille.pause();
+    rencontrePoke.pause();
+    victoirePoke.play()
+    break
+    case "End" :
+    victoirePoke.pause();
+     rencontrePoke.pause();
+  }
+}
+
 const drawDialogue = (ctx : CanvasRenderingContext2D, state: State) => {
   ctx.fillRect(0,570,ctx.canvas.width, ctx.canvas.height - 570)
   ctx.fillStyle = "black"
@@ -239,7 +277,7 @@ const drawDialogue = (ctx : CanvasRenderingContext2D, state: State) => {
       break;
     case "Victoire" : 
       ctx.fillText(state.enemy.nom + " est k.o", 20,630)
-      if(state.framedialogue > 70){
+      if(state.framedialogue > 400){
         state.dialogue.action = "End"
       }
       state.framedialogue++
@@ -287,10 +325,12 @@ const drawAffichageMap = (ctx : CanvasRenderingContext2D, state : State) => {
   }
   
 }
+ 
+
 
 export const render = (ctx: CanvasRenderingContext2D) => (state: State) => {
   clear(ctx);
-
+  
   if (state.battle) {
     state.flashcount++;
     if (state.flashcount < 30){
@@ -298,14 +338,18 @@ export const render = (ctx: CanvasRenderingContext2D) => (state: State) => {
         drawBlackScreen(ctx);
       }
       else {
+        
         drawMap(ctx, state);
         drawPlayer(ctx, state);
         drawForeGround(ctx, state);
+        
       }  
    }else {
+    musiqueCombat(state)
     drawBattle(ctx,state)
    }
   }else {
+    musiqueV()
     drawMap(ctx, state);
     drawPlayer(ctx, state);
     drawForeGround(ctx, state);
